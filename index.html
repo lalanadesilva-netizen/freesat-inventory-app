@@ -111,7 +111,7 @@
       <!-- Desktop Tabs -->
       <nav class="hidden sm:block bg-slate-800 border-t border-slate-700">
         <div class="max-w-7xl mx-auto px-4 flex gap-1 py-1.5 text-sm">
-          <button onclick="switchTab('stock')" id="tab-stock" class="tab-btn px-4 py-2 rounded-lg font-medium bg-blue-600 text-white">
+          <button onclick="switchTab('stock')" id="tab-stock" class="tab-btn non-tech-only px-4 py-2 rounded-lg font-medium bg-blue-600 text-white">
             📦 Main Stock (<span id="count-items">0</span>)
           </button>
           <button onclick="switchTab('techstock')" id="tab-techstock" class="tab-btn tech-or-admin hidden px-4 py-2 rounded-lg font-medium text-slate-300 hover:bg-slate-700">
@@ -129,7 +129,7 @@
 
     <!-- Mobile Bottom Navigation -->
     <nav id="mobile-bottom-nav" class="sm:hidden fixed bottom-0 inset-x-0 bg-slate-900 border-t border-slate-700 z-40 flex justify-around py-1.5 text-xs no-print">
-      <button onclick="switchTab('stock')" id="mob-tab-stock" class="flex flex-col items-center py-1 px-2 text-blue-400 font-bold">
+      <button onclick="switchTab('stock')" id="mob-tab-stock" class="non-tech-only flex flex-col items-center py-1 px-2 text-blue-400 font-bold">
         <span class="text-lg">📦</span><span>Stock</span>
       </button>
       <button onclick="switchTab('techstock')" id="mob-tab-techstock" class="tech-or-admin hidden flex flex-col items-center py-1 px-2 text-slate-400">
@@ -173,7 +173,7 @@
         <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-2.5">
           <div class="flex flex-wrap items-center gap-2 flex-1 w-full">
             <input type="text" id="stock-search" oninput="renderInventory()"
-              placeholder="🔍 PCB Code (U2, SD2) හෝ නම සොයන්න..."
+              placeholder="🔍 PCB Code, BOM Code හෝ නම සොයන්න..."
               class="flex-1 min-w-[200px] px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" />
             <select id="stock-category" onchange="renderInventory()" class="px-2.5 py-2 border border-slate-300 rounded-lg text-sm bg-white">
               <option value="ALL">All Categories</option>
@@ -202,7 +202,7 @@
                 <tr>
                   <th class="py-3 px-3">#</th>
                   <th class="py-3 px-3">PCB Code</th>
-                  <th class="py-3 px-3">Component Name</th>
+                  <th class="py-3 px-3" id="th-comp-bom">Component Name / BOM</th>
                   <th class="py-3 px-3 hidden md:table-cell">Category</th>
                   <th class="py-3 px-3 text-right">Qty</th>
                   <th class="py-3 px-3 text-right hidden sm:table-cell non-tech-only">Price</th>
@@ -281,7 +281,7 @@
                 <tr>
                   <th class="py-3 px-3">Technician</th>
                   <th class="py-3 px-3">PCB Code</th>
-                  <th class="py-3 px-3">Component Name</th>
+                  <th class="py-3 px-3" id="th-tech-part">Component / BOM Code</th>
                   <th class="py-3 px-3 text-right">Remaining Qty</th>
                   <th class="py-3 px-3 text-right hidden sm:table-cell non-tech-only">Value (Rs.)</th>
                   <th class="py-3 px-3 text-center admin-only hidden">Return to Main</th>
@@ -378,7 +378,7 @@
             </div>
           </div>
 
-          <!-- Parts Selector WITH PCB CODE SEARCH -->
+          <!-- Parts Selector WITH PCB / BOM CODE SEARCH -->
           <div id="parts-selector-box" class="bg-slate-50 p-3.5 rounded-lg border border-slate-200 mb-3 space-y-2.5">
             <div class="flex flex-wrap items-center justify-between gap-2">
               <label class="text-xs font-semibold text-slate-700" id="parts-selector-label">මාරු කළ උපාංග (Replaced Parts) තෝරන්න:</label>
@@ -387,7 +387,7 @@
 
             <div class="relative">
               <input type="text" id="rep-part-search" oninput="populatePartDropdown()"
-                placeholder="🔍 PCB Code ටයිප් කර සොයන්න (උදා: U11, SD2, CU11, U2, J-HDMI)..."
+                placeholder="🔍 PCB Code හෝ BOM Code ටයිප් කර සොයන්න (උදා: U11, 641110, SD2, U2)..."
                 class="w-full px-3.5 py-2 border border-blue-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none" />
               <button type="button" onclick="clearPartSearch()" id="btn-clear-part-search"
                 class="hidden absolute right-2.5 top-2 text-xs text-slate-400 hover:text-slate-700 font-bold px-1">✕</button>
@@ -641,11 +641,11 @@
         { id: 50, pcbCode: "HS-CPU", name: "Aluminum Heatsink for STB SoC/CPU (181010-0006200)", bomCode: "181010-0006200", category: "Hardware & Mechanical", qty: 500, price: 12, minStock: 50, isFree: false }
       ],
       repairs: [
-        { id: "1794895116080", date: "2026-11-03", serialNumber: "011125164578154", warranty: "WITH_WARRANTY", parts: [{ itemId: 4, pcbCode: "U11-A", itemName: "RDA5815M Satellite Tuner IC (Lot 1)", qty: 1, unitPrice: 100 }], note: "No HDMI / Signal Fault" },
-        { id: "1794889639332", date: "2026-11-03", serialNumber: "011125171248510", warranty: "WITH_WARRANTY", parts: [{ itemId: 10, pcbCode: "U12,U13,U14", itemName: "GT105-24PFC Crystal Oscillator (24pF)", qty: 1, unitPrice: 25 }, { itemId: 23, pcbCode: "U-JW53", itemName: "Joulwatt JW5352MSOTB#TR Buck IC", qty: 3, unitPrice: 25 }], note: "Power fault (New STB)" },
-        { id: "1794889334685", date: "2026-11-03", serialNumber: "011125207908428", warranty: "WITH_WARRANTY", parts: [{ itemId: 4, pcbCode: "U11-A", itemName: "RDA5815M Satellite Tuner IC (Lot 1)", qty: 1, unitPrice: 100 }], note: "Tunner IC Replace" },
-        { id: "1794889252718", date: "2026-11-05", serialNumber: "011125207907226", warranty: "WITH_WARRANTY", parts: [{ itemId: 4, pcbCode: "U11-A", itemName: "RDA5815M Satellite Tuner IC (Lot 1)", qty: 1, unitPrice: 100 }], note: "Tunner IC Replace" },
-        { id: "101", date: "2026-11-17", serialNumber: "FS-STB-2026-00145", warranty: "WITH_WARRANTY", parts: [{ itemId: 19, pcbCode: "J-HDMI", itemName: "HDMI Type-A 19P SMT Port", qty: 1, unitPrice: 45 }, { itemId: 26, pcbCode: "DC-005", itemName: "DC-005 DC Power Jack Socket 2.0mm (440550-0000200)", qty: 1, unitPrice: 10 }], note: "Sample Entry - HDMI & DC Jack replaced under warranty" }
+        { id: "1794895116080", date: "2026-11-03", serialNumber: "011125164578154", warranty: "WITH_WARRANTY", parts: [{ itemId: 4, pcbCode: "U11-A", bomCode: "641110-0055300", itemName: "RDA5815M Satellite Tuner IC (Lot 1)", qty: 1, unitPrice: 100 }], note: "No HDMI / Signal Fault" },
+        { id: "1794889639332", date: "2026-11-03", serialNumber: "011125171248510", warranty: "WITH_WARRANTY", parts: [{ itemId: 10, pcbCode: "U12,U13,U14", bomCode: "641110-0088600", itemName: "GT105-24PFC Crystal Oscillator (24pF)", qty: 1, unitPrice: 25 }, { itemId: 23, pcbCode: "U-JW53", bomCode: "641110-0089300", itemName: "Joulwatt JW5352MSOTB#TR Buck IC", qty: 3, unitPrice: 25 }], note: "Power fault (New STB)" },
+        { id: "1794889334685", date: "2026-11-03", serialNumber: "011125207908428", warranty: "WITH_WARRANTY", parts: [{ itemId: 4, pcbCode: "U11-A", bomCode: "641110-0055300", itemName: "RDA5815M Satellite Tuner IC (Lot 1)", qty: 1, unitPrice: 100 }], note: "Tunner IC Replace" },
+        { id: 1794889252718, date: "2026-11-05", serialNumber: "011125207907226", warranty: "WITH_WARRANTY", parts: [{ itemId: 4, pcbCode: "U11-A", bomCode: "641110-0055300", itemName: "RDA5815M Satellite Tuner IC (Lot 1)", qty: 1, unitPrice: 100 }], note: "Tunner IC Replace" },
+        { id: "101", date: "2026-11-17", serialNumber: "FS-STB-2026-00145", warranty: "WITH_WARRANTY", parts: [{ itemId: 19, pcbCode: "J-HDMI", bomCode: "440270-0002000", itemName: "HDMI Type-A 19P SMT Port", qty: 1, unitPrice: 45 }, { itemId: 26, pcbCode: "DC Power Jack", bomCode: "440550-0000200", itemName: "DC-005 DC Power Jack Socket 2.0mm (440550-0000200)", qty: 1, unitPrice: 10 }], note: "Sample Entry - HDMI & DC Jack replaced under warranty" }
       ]
     };
 
@@ -655,6 +655,24 @@
 
     document.getElementById("rep-date").valueAsDate = new Date();
     document.getElementById("issue-date").valueAsDate = new Date();
+
+    function formatPartForRole(partObj, role = currentRole) {
+      const bom = partObj.bomCode || partObj.pcbCode || "BOM-N/A";
+      const cat = partObj.category ? ` (${partObj.category})` : "";
+      if (role === "technician") {
+        return `<span class="font-mono font-semibold text-slate-800">${bom}</span><span class="text-xs text-slate-500">${cat}</span>`;
+      }
+      return `<div class="font-medium text-slate-900 text-xs sm:text-sm">${partObj.itemName || partObj.name || ""}</div><div class="text-[11px] text-slate-400 font-mono">${partObj.bomCode || ""}</div>`;
+    }
+
+    function formatPartInlineForRole(partObj, role = currentRole) {
+      const bom = partObj.bomCode || partObj.pcbCode || "BOM-N/A";
+      const cat = partObj.category ? ` (${partObj.category})` : "";
+      if (role === "technician") {
+        return `<span class="font-mono font-semibold">${bom}</span><span class="text-slate-500">${cat}</span>`;
+      }
+      return `${partObj.itemName || partObj.name || ""}`;
+    }
 
     document.getElementById("login-form").addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -707,10 +725,15 @@
 
       const sourceBadge = document.getElementById("repair-stock-source-badge");
       const selectorLabel = document.getElementById("parts-selector-label");
+      const thCompBom = document.getElementById("th-comp-bom");
+      const thTechPart = document.getElementById("th-tech-part");
+
       if (isTech) {
         sourceBadge.textContent = "🎒 Deducting from: My Technician Stock";
         sourceBadge.className = "px-2.5 py-1 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800 border border-indigo-300";
-        selectorLabel.textContent = "ඔබට නිකුත් කර ඇති උපාංග (My Issued Parts) තෝරන්න:";
+        selectorLabel.textContent = "ඔබට නිකුත් කර ඇති උපාංග (My Issued BOM Codes) තෝරන්න:";
+        if (thCompBom) thCompBom.textContent = "BOM Code";
+        if (thTechPart) thTechPart.textContent = "BOM Code";
         document.getElementById("tech-stock-heading").textContent = "🎒 මා සතුව ඇති ඉතිරි තොග (My Technician Stock Balance)";
         document.getElementById("tab-techstock-label").textContent = "My Stock";
         document.getElementById("mob-techstock-label").textContent = "My Stock";
@@ -720,6 +743,8 @@
         sourceBadge.textContent = "📦 Deducting from: Main Warehouse Stock";
         sourceBadge.className = "px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-300";
         selectorLabel.textContent = "මාරු කළ උපාංග (Replaced Parts from Main Stock) තෝරන්න:";
+        if (thCompBom) thCompBom.textContent = "Component Name / BOM";
+        if (thTechPart) thTechPart.textContent = "Component / BOM Code";
         document.getElementById("tab-techstock-label").textContent = "Tech Stock";
         document.getElementById("mob-techstock-label").textContent = "Tech Stock";
         document.getElementById("tab-repairs-label").textContent = "STB Repairs & Reports";
@@ -729,14 +754,18 @@
       document.getElementById("login-screen").classList.add("hidden");
       document.getElementById("app-screen").classList.remove("hidden");
 
-      // 1. Main Inventory Listener
+      const handleSnapshotError = (err) => {
+        if (err.code === "permission-denied") {
+          alert("🔒 Access Denied: මෙම දත්ත බැලීමට ඔබට අවසර නැත.");
+        }
+      };
+
       onSnapshot(collection(db, "inventory"), (snap) => {
         inventoryList = snap.docs.map(d => ({ docId: d.id, ...d.data() })).sort((a, b) => Number(a.id) - Number(b.id));
         document.getElementById("count-items").textContent = inventoryList.length;
         updateStats(); renderInventory(); populatePartDropdown(); populateIssueDropdown();
-      });
+      }, handleSnapshotError);
 
-      // 2. Technician Stock Listener
       onSnapshot(collection(db, "tech_stock"), (snap) => {
         techStockList = snap.docs.map(d => ({ docId: d.id, ...d.data() })).filter(t => Number(t.qty) > 0);
         const myItems = isTech
@@ -745,22 +774,19 @@
         document.getElementById("count-tech-items").textContent = myItems.length;
         renderTechStock();
         populatePartDropdown();
-      });
+      }, handleSnapshotError);
 
-      // 3. Issue Logs Listener
       onSnapshot(collection(db, "tech_issue_logs"), (snap) => {
         issueLogsList = snap.docs.map(d => ({ docId: d.id, ...d.data() })).sort((a, b) => String(b.createdAt || b.date).localeCompare(String(a.createdAt || a.date)));
         renderIssueLogs();
-      });
+      }, handleSnapshotError);
 
-      // 4. Repairs Listener
       onSnapshot(collection(db, "repairs"), (snap) => {
         repairsList = snap.docs.map(d => ({ docId: d.id, ...d.data() })).sort((a, b) => String(b.date).localeCompare(String(a.date)));
         document.getElementById("count-repairs").textContent = repairsList.length;
         updateStats(); populateTechFilterDropdown(); renderRepairs();
-      });
+      }, handleSnapshotError);
 
-      // 5. Users Listener
       onSnapshot(collection(db, "users"), (snap) => {
         usersList = snap.docs.map(d => ({ email: d.id, ...d.data() }));
         populateTechnicianSelectors();
@@ -772,7 +798,7 @@
             <td class="py-2 px-3 text-right"><button onclick="deleteUserRole('${u.email}')" class="text-red-600 text-xs">Remove</button></td></tr>
           `).join("");
         }
-      });
+      }, () => {});
     });
 
     function populateTechnicianSelectors() {
@@ -822,7 +848,10 @@
       const cat = document.getElementById("stock-category").value;
       const type = document.getElementById("stock-type-filter").value;
       const filtered = inventoryList.filter(item => {
-        const matchQ = !q || String(item.pcbCode || "").toLowerCase().includes(q) || String(item.name || "").toLowerCase().includes(q) || String(item.bomCode || "").toLowerCase().includes(q);
+        const matchQ = !q ||
+          String(item.pcbCode || "").toLowerCase().includes(q) ||
+          String(item.bomCode || "").toLowerCase().includes(q) ||
+          (!isTech && String(item.name || "").toLowerCase().includes(q));
         const matchCat = cat === "ALL" || item.category === cat;
         const matchType = type === "ALL" || (type === "PAID" && !item.isFree) || (type === "FREE" && item.isFree) || (type === "LOW" && Number(item.qty) <= Number(item.minStock));
         return matchQ && matchCat && matchType;
@@ -833,7 +862,7 @@
         return `<tr class="hover:bg-slate-50 ${isLow ? 'bg-amber-50/50' : ''}">
           <td class="py-2.5 px-3 text-slate-500 font-mono text-xs">${item.id}</td>
           <td class="py-2.5 px-3 font-bold text-blue-700 text-xs sm:text-sm">${item.pcbCode}</td>
-          <td class="py-2.5 px-3"><div class="font-medium text-slate-900 text-xs sm:text-sm">${item.name}</div><div class="text-[11px] text-slate-400 font-mono">${item.bomCode || ''}</div></td>
+          <td class="py-2.5 px-3">${formatPartForRole(item)}</td>
           <td class="py-2.5 px-3 text-xs text-slate-600 hidden md:table-cell">${item.category}</td>
           <td class="py-2.5 px-3 text-right font-bold ${isLow ? 'text-red-600' : 'text-slate-900'}">${Number(item.qty).toLocaleString()}</td>
           <td class="py-2.5 px-3 text-right text-slate-600 hidden sm:table-cell non-tech-only ${isTech ? 'hidden' : ''}">Rs. ${Number(item.price).toFixed(2)}</td>
@@ -853,7 +882,7 @@
       const sel = document.getElementById("issue-part-select");
       if (!sel) return;
       const matched = inventoryList.filter(i =>
-        !q || String(i.pcbCode || "").toLowerCase().includes(q) || String(i.name || "").toLowerCase().includes(q)
+        !q || String(i.pcbCode || "").toLowerCase().includes(q) || String(i.name || "").toLowerCase().includes(q) || String(i.bomCode || "").toLowerCase().includes(q)
       );
       if (matched.length === 0) {
         sel.innerHTML = `<option value="">❌ ගැළපෙන උපාංගයක් නැත</option>`;
@@ -875,7 +904,16 @@
         return;
       }
       if (existingIdx >= 0) issueDraftParts[existingIdx].qty += qty;
-      else issueDraftParts.push({ docId: item.docId, itemId: item.id, pcbCode: item.pcbCode, itemName: item.name, qty, unitPrice: Number(item.price) || 0 });
+      else issueDraftParts.push({
+        docId: item.docId,
+        itemId: item.id,
+        pcbCode: item.pcbCode,
+        bomCode: item.bomCode || "",
+        category: item.category || "",
+        itemName: item.name,
+        qty,
+        unitPrice: Number(item.price) || 0
+      });
 
       renderIssueDraftList();
       document.getElementById("issue-part-qty").value = 1;
@@ -914,6 +952,8 @@
             invDocId: p.docId,
             itemId: p.itemId,
             pcbCode: p.pcbCode,
+            bomCode: p.bomCode || "",
+            category: p.category || "",
             itemName: p.itemName,
             unitPrice: p.unitPrice,
             qty: increment(p.qty),
@@ -925,6 +965,8 @@
             type: "ISSUE",
             techEmail,
             pcbCode: p.pcbCode,
+            bomCode: p.bomCode || "",
+            category: p.category || "",
             itemName: p.itemName,
             qty: p.qty,
             note,
@@ -968,6 +1010,8 @@
           type: "RETURN",
           techEmail: item.techEmail,
           pcbCode: item.pcbCode,
+          bomCode: item.bomCode || "",
+          category: item.category || "",
           itemName: item.itemName,
           qty: retQty,
           note: "Returned to Main Stock",
@@ -997,11 +1041,13 @@
       }
 
       tbody.innerHTML = list.sort((a, b) => String(a.pcbCode).localeCompare(String(b.pcbCode))).map(t => {
+        const invMatch = inventoryList.find(i => i.docId === t.invDocId);
+        const enriched = { ...t, bomCode: t.bomCode || invMatch?.bomCode || "", category: t.category || invMatch?.category || "" };
         const val = (Number(t.qty) * Number(t.unitPrice || 0)).toLocaleString("en-US", { maximumFractionDigits: 2 });
         return `<tr class="hover:bg-slate-50">
           <td class="py-2.5 px-3 text-xs font-medium text-indigo-700">${t.techEmail}</td>
           <td class="py-2.5 px-3 font-bold text-blue-700 text-xs sm:text-sm">${t.pcbCode}</td>
-          <td class="py-2.5 px-3 text-xs sm:text-sm">${t.itemName}</td>
+          <td class="py-2.5 px-3">${formatPartForRole(enriched)}</td>
           <td class="py-2.5 px-3 text-right font-bold text-emerald-700">${Number(t.qty).toLocaleString()}</td>
           <td class="py-2.5 px-3 text-right text-slate-600 hidden sm:table-cell non-tech-only ${isTech ? 'hidden' : ''}">Rs. ${val}</td>
           <td class="py-2.5 px-3 text-center admin-only ${currentRole !== 'admin' ? 'hidden' : ''}">
@@ -1018,16 +1064,19 @@
       if (currentRole === "technician") {
         logs = logs.filter(l => String(l.techEmail || "").toLowerCase() === currentUser.email.toLowerCase());
       }
-      tbody.innerHTML = logs.slice(0, 50).map(l => `
-        <tr class="hover:bg-slate-50">
+      tbody.innerHTML = logs.slice(0, 50).map(l => {
+        const invMatch = inventoryList.find(i => i.pcbCode === l.pcbCode && i.name === l.itemName);
+        const enriched = { ...l, bomCode: l.bomCode || invMatch?.bomCode || "", category: l.category || invMatch?.category || "" };
+        return `<tr class="hover:bg-slate-50">
           <td class="py-2 px-3 font-mono text-xs whitespace-nowrap">${l.date}</td>
           <td class="py-2 px-3 text-xs font-medium">${l.techEmail}</td>
-          <td class="py-2 px-3 text-xs"><b>[${l.pcbCode}]</b> ${l.itemName}</td>
+          <td class="py-2 px-3 text-xs"><b>[${l.pcbCode}]</b> ${formatPartInlineForRole(enriched)}</td>
           <td class="py-2 px-3 text-right font-bold ${l.type === 'RETURN' ? 'text-amber-700' : 'text-indigo-700'}">
             ${l.type === 'RETURN' ? `-${l.qty} (Return)` : `+${l.qty} (Issued)`}
           </td>
           <td class="py-2 px-3 text-xs text-slate-500">${l.note || '-'} <span class="text-[10px]">(${l.by || ''})</span></td>
-        </tr>`).join("");
+        </tr>`;
+      }).join("");
     }
 
     // --- REPAIR PARTS SELECTOR (SEPARATE FOR TECHNICIAN vs ADMIN) ---
@@ -1041,48 +1090,57 @@
       const q = (searchInput ? searchInput.value : "").trim().toLowerCase();
       if (clearBtn) clearBtn.classList.toggle("hidden", !q);
 
-      const sourcePool = (currentRole === "technician")
+      const isTech = currentRole === "technician";
+      const sourcePool = isTech
         ? techStockList
             .filter(t => String(t.techEmail || "").toLowerCase() === currentUser.email.toLowerCase() && Number(t.qty) > 0)
-            .map(t => ({
-              docId: t.docId,
-              invDocId: t.invDocId,
-              id: t.itemId,
-              pcbCode: t.pcbCode,
-              name: t.itemName,
-              qty: Number(t.qty),
-              price: Number(t.unitPrice) || 0,
-              isTechStock: true
-            }))
+            .map(t => {
+              const invMatch = inventoryList.find(i => i.docId === t.invDocId);
+              return {
+                docId: t.docId,
+                invDocId: t.invDocId,
+                id: t.itemId,
+                pcbCode: t.pcbCode,
+                bomCode: t.bomCode || invMatch?.bomCode || "",
+                category: t.category || invMatch?.category || "",
+                name: t.itemName,
+                qty: Number(t.qty),
+                price: Number(t.unitPrice) || 0,
+                isTechStock: true
+              };
+            })
         : inventoryList.map(i => ({ ...i, invDocId: i.docId, isTechStock: false }));
 
       const matched = sourcePool.filter(i =>
         !q ||
         String(i.pcbCode || "").toLowerCase().includes(q) ||
-        String(i.name || "").toLowerCase().includes(q) ||
-        String(i.bomCode || "").toLowerCase().includes(q)
+        String(i.bomCode || "").toLowerCase().includes(q) ||
+        (!isTech && String(i.name || "").toLowerCase().includes(q))
       );
 
       if (countLabel) {
-        if (currentRole === "technician" && sourcePool.length === 0) {
+        if (isTech && sourcePool.length === 0) {
           countLabel.textContent = "⚠️ ඔබට තවම Parts Issue කර නොමැත";
         } else {
           countLabel.textContent = q
             ? `ගැළපෙන උපාංග ${matched.length} ක් හමුවිය`
-            : `${currentRole === "technician" ? "ඔබ ළඟ ඇති උපාංග" : "මුළු උපාංග"} ${sourcePool.length} කි`;
+            : `${isTech ? "ඔබ ළඟ ඇති BOM Codes" : "මුළු උපාංග"} ${sourcePool.length} කි`;
         }
       }
 
       if (matched.length === 0) {
-        sel.innerHTML = currentRole === "technician" && sourcePool.length === 0
+        sel.innerHTML = isTech && sourcePool.length === 0
           ? `<option value="">❌ ඔබ ළඟ Parts නොමැත (Admin හරහා Issue කරගන්න)</option>`
           : `<option value="">❌ "${searchInput.value}" සඳහා උපාංගයක් හමු නොවීය</option>`;
         return;
       }
 
-      sel.innerHTML = matched.map(i =>
-        `<option value="${i.docId}">[${i.pcbCode}] ${i.name} (${i.isTechStock ? 'My Stock' : 'Stock'}: ${i.qty})</option>`
-      ).join("");
+      sel.innerHTML = matched.map(i => {
+        const desc = isTech
+          ? `${i.bomCode || i.pcbCode}${i.category ? ` (${i.category})` : ""}`
+          : `${i.name}`;
+        return `<option value="${i.docId}">[${i.pcbCode}] ${desc} (${i.isTechStock ? 'My Stock' : 'Stock'}: ${i.qty})</option>`;
+      }).join("");
 
       if (currentSelectedVal && matched.some(i => i.docId === currentSelectedVal)) {
         sel.value = currentSelectedVal;
@@ -1155,7 +1213,7 @@
     function renderDraftList() {
       document.getElementById("rep-draft-parts").innerHTML = draftParts.map((p, idx) => `
         <div class="flex items-center justify-between bg-white px-3 py-1.5 rounded border border-slate-300 text-xs">
-          <span><b>[${p.pcbCode}]</b> ${p.itemName} × <b>${p.qty}</b> ${currentRole === 'technician' ? '' : `(Rs. ${(p.qty * p.unitPrice).toFixed(2)})`}</span>
+          <span><b>[${p.pcbCode}]</b> ${formatPartInlineForRole(p)} × <b>${p.qty}</b> ${currentRole === 'technician' ? '' : `(Rs. ${(p.qty * p.unitPrice).toFixed(2)})`}</span>
           <button type="button" onclick="removeDraftPart(${idx})" class="text-red-600 hover:text-red-800 font-bold px-1.5">✕</button>
         </div>`).join("");
       onWarrantyChange();
@@ -1169,10 +1227,33 @@
       let item = null;
       if (currentRole === "technician") {
         const t = techStockList.find(x => x.docId === docId);
-        if (t) item = { docId: t.docId, itemId: t.itemId, pcbCode: t.pcbCode, name: t.itemName, qty: Number(t.qty), price: Number(t.unitPrice) || 0, isTechStock: true };
+        const invMatch = t ? inventoryList.find(i => i.docId === t.invDocId) : null;
+        if (t) item = {
+          docId: t.docId,
+          invDocId: t.invDocId,
+          itemId: t.itemId,
+          pcbCode: t.pcbCode,
+          bomCode: t.bomCode || invMatch?.bomCode || "",
+          category: t.category || invMatch?.category || "",
+          name: t.itemName,
+          qty: Number(t.qty),
+          price: Number(t.unitPrice) || 0,
+          isTechStock: true
+        };
       } else {
         const inv = inventoryList.find(x => x.docId === docId);
-        if (inv) item = { docId: inv.docId, itemId: inv.id, pcbCode: inv.pcbCode, name: inv.name, qty: Number(inv.qty), price: Number(inv.price) || 0, isTechStock: false };
+        if (inv) item = {
+          docId: inv.docId,
+          invDocId: inv.docId,
+          itemId: inv.id,
+          pcbCode: inv.pcbCode,
+          bomCode: inv.bomCode || "",
+          category: inv.category || "",
+          name: inv.name,
+          qty: Number(inv.qty),
+          price: Number(inv.price) || 0,
+          isTechStock: false
+        };
       }
 
       if (!item) { alert("කරුණාකර වලංගු උපාංගයක් තෝරන්න."); return; }
@@ -1190,9 +1271,12 @@
       } else {
         draftParts.push({
           docId: item.docId,
+          invDocId: item.invDocId,
           isTechStock: item.isTechStock,
           itemId: item.itemId,
           pcbCode: item.pcbCode,
+          bomCode: item.bomCode || "",
+          category: item.category || "",
           itemName: item.name,
           qty,
           unitPrice: item.price
@@ -1211,6 +1295,7 @@
       const warranty = document.getElementById("rep-warranty").value;
       const voidReason = warranty === "WARRANTY_VOID" ? document.getElementById("rep-void-reason").value : "";
       const note = document.getElementById("rep-note").value.trim();
+      const actorEmail = currentUser.email.toLowerCase();
 
       if (!serial) { alert("කරුණාකර STB Serial Number එක ඇතුළත් කරන්න."); return; }
       if (warranty !== "WARRANTY_VOID" && draftParts.length === 0) {
@@ -1227,15 +1312,28 @@
       btn.disabled = true; btn.textContent = "Saving...";
       try {
         const batch = writeBatch(db);
+        const savedParts = draftParts.map(p => ({
+          itemId: p.itemId,
+          invDocId: p.invDocId || (!p.isTechStock ? p.docId : ""),
+          techStockDocId: p.isTechStock ? p.docId : "",
+          techEmail: p.isTechStock ? actorEmail : "",
+          pcbCode: p.pcbCode,
+          bomCode: p.bomCode || "",
+          category: p.category || "",
+          itemName: p.itemName,
+          qty: Number(p.qty) || 0,
+          unitPrice: Number(p.unitPrice) || 0
+        }));
+
         batch.set(doc(collection(db, "repairs")), {
           date,
           serialNumber: serial,
           warranty,
           voidReason,
-          parts: draftParts.map(({ docId, isTechStock, ...rest }) => rest),
+          parts: savedParts,
           deductedFrom: currentRole === "technician" ? "TECH_STOCK" : "MAIN_STOCK",
           note,
-          addedBy: currentUser.email.toLowerCase(),
+          addedBy: actorEmail,
           createdAt: new Date().toISOString()
         });
 
@@ -1282,7 +1380,7 @@
           String(r.serialNumber || "").toLowerCase().includes(q) ||
           String(r.note || "").toLowerCase().includes(q) ||
           String(r.voidReason || "").toLowerCase().includes(q) ||
-          (r.parts || []).some(p => String(p.pcbCode || "").toLowerCase().includes(q));
+          (r.parts || []).some(p => String(p.pcbCode || "").toLowerCase().includes(q) || String(p.bomCode || "").toLowerCase().includes(q));
         const matchMonth = !monthFilter || String(r.date || "").startsWith(monthFilter);
         const matchTech = techFilter === "ALL" || String(r.addedBy || "").toLowerCase() === techFilter.toLowerCase();
         const matchWarranty = warrantyFilter === "ALL" || r.warranty === warrantyFilter;
@@ -1343,6 +1441,65 @@
       }).join("");
     };
 
+    window.deleteRepair = async (docId) => {
+      if (currentRole !== "admin") return;
+      const rep = repairsList.find(r => r.docId === docId);
+      if (!rep) return;
+
+      const hasParts = Array.isArray(rep.parts) && rep.parts.length > 0;
+      const msg = hasParts
+        ? `Serial: ${rep.serialNumber} Repair වාර්තාව Delete කර, භාවිතා කළ Parts (${rep.parts.map(p => `${p.pcbCode}×${p.qty}`).join(", ")}) නැවත Stock එකට Restore කරන්නද?`
+        : `Serial: ${rep.serialNumber} වාර්තාව Delete කරන්නද?`;
+
+      if (!confirm(msg)) return;
+
+      try {
+        const batch = writeBatch(db);
+        batch.delete(doc(db, "repairs", docId));
+
+        if (hasParts) {
+          for (const p of rep.parts) {
+            const qtyToRestore = Number(p.qty) || 0;
+            if (qtyToRestore <= 0) continue;
+
+            const invMatch = inventoryList.find(i =>
+              (p.invDocId && i.docId === p.invDocId) ||
+              (p.itemId && Number(i.id) === Number(p.itemId)) ||
+              (p.pcbCode && String(i.pcbCode).toLowerCase() === String(p.pcbCode).toLowerCase() && String(i.name) === String(p.itemName))
+            );
+
+            const techOwnerEmail = String(p.techEmail || (rep.deductedFrom === "TECH_STOCK" ? rep.addedBy : "") || "").trim().toLowerCase();
+
+            if (techOwnerEmail && invMatch) {
+              const safeEmail = techOwnerEmail.replace(/[^a-z0-9]/gi, "_");
+              const techStockDocId = p.techStockDocId || `${safeEmail}__${invMatch.docId}`;
+              batch.set(doc(db, "tech_stock", techStockDocId), {
+                techEmail: techOwnerEmail,
+                invDocId: invMatch.docId,
+                itemId: invMatch.id,
+                pcbCode: invMatch.pcbCode,
+                bomCode: invMatch.bomCode || p.bomCode || "",
+                category: invMatch.category || p.category || "",
+                itemName: invMatch.name,
+                unitPrice: Number(invMatch.price) || Number(p.unitPrice) || 0,
+                qty: increment(qtyToRestore),
+                updatedAt: new Date().toISOString()
+              }, { merge: true });
+            } else if (invMatch) {
+              batch.update(doc(db, "inventory", invMatch.docId), { qty: increment(qtyToRestore) });
+            }
+          }
+        }
+
+        await batch.commit();
+        alert(hasParts
+          ? "✅ Repair වාර්තාව මකා දැමූ අතර අදාළ Parts නැවත Stock එකට Restore විය!"
+          : "✅ වාර්තාව සාර්ථකව මකා දමන ලදී.");
+      } catch (err) {
+        alert("Delete කිරීමේදී දෝෂයක් ඇති විය: " + err.message);
+      }
+    };
+
     window.printRepairReport = () => {
       const selectedLogin = document.getElementById("repair-tech-filter").value;
       const selectedMonth = document.getElementById("repair-month-filter").value;
@@ -1355,7 +1512,7 @@
     };
 
     window.switchTab = (tab) => {
-      if (currentRole === "technician" && tab === "admin") {
+      if (currentRole === "technician" && (tab === "stock" || tab === "admin")) {
         tab = "repairs";
       }
       ["stock", "techstock", "repairs", "admin"].forEach(t => {
@@ -1394,7 +1551,6 @@
       closeItemModal();
     };
     window.deleteItem = async (docId) => { if (currentRole === "admin" && confirm("Delete?")) await deleteDoc(doc(db, "inventory", docId)); };
-    window.deleteRepair = async (docId) => { if (currentRole === "admin" && confirm("Delete?")) await deleteDoc(doc(db, "repairs", docId)); };
     window.saveUserRole = async () => {
       const email = document.getElementById("role-email-input").value.trim().toLowerCase();
       if (currentRole === "admin" && email) {
