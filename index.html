@@ -1,0 +1,1474 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Freesat Service Manager</title>
+
+  <!-- ANDROID & IOS MOBILE APP (PWA) CONFIG -->
+  <link rel="manifest" href="./manifest.json" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Freesat App" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#0f172a" />
+
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='110' fill='%232563eb'/><text x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial,sans-serif' font-weight='bold' font-size='220' fill='white'>FS</text></svg>" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='110' fill='%232563eb'/><text x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial,sans-serif' font-weight='bold' font-size='220' fill='white'>FS</text></svg>" />
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(err => console.warn('SW error:', err));
+      });
+    }
+  </script>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+    .badge-free { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+    .badge-paid { background: #e0f2fe; color: #075985; border: 1px solid #7dd3fc; }
+    @media print {
+      body { background: white !important; }
+      .no-print, header, #mobile-bottom-nav, #login-screen, #view-stock, #view-techstock, #view-admin, #repair-form-card, #repair-filter-bar {
+        display: none !important;
+      }
+      #app-screen, #view-repairs, #print-report-header { display: block !important; }
+      .print-shadow-none { box-shadow: none !important; border: 1px solid #cbd5e1 !important; }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen pb-16 sm:pb-0">
+
+  <!-- LOGIN SCREEN -->
+  <div id="login-screen" class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-7">
+      <div class="text-center mb-6">
+        <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-600 text-white font-bold text-2xl mb-3 shadow-lg">FS</div>
+        <h1 class="text-xl sm:text-2xl font-bold text-slate-900">Freesat Inventory & STB Manager</h1>
+        <p class="text-xs sm:text-sm text-slate-500 mt-1">Cloud Synced Mobile & Web Portal</p>
+      </div>
+
+      <div id="login-error" class="hidden mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm"></div>
+
+      <form id="login-form" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Email ලිපිනය</label>
+          <input type="email" id="login-email" required placeholder="admin@freesat.lk / tech@freesat.lk"
+            class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Password (මුරපදය)</label>
+          <input type="password" id="login-password" required placeholder="••••••••"
+            class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+        </div>
+        <button type="submit" id="login-btn"
+          class="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow transition">
+          🔐 පද්ධතියට ඇතුළු වන්න (Sign In)
+        </button>
+      </form>
+
+      <div class="my-4 flex items-center">
+        <div class="flex-grow border-t border-slate-200"></div>
+        <span class="px-3 text-xs text-slate-400 uppercase">හෝ (OR)</span>
+        <div class="flex-grow border-t border-slate-200"></div>
+      </div>
+
+      <button id="google-login-btn" type="button"
+        class="w-full py-2.5 px-4 bg-white hover:bg-slate-50 text-slate-700 font-medium border border-slate-300 rounded-xl shadow-sm flex items-center justify-center gap-2 transition">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5" alt="Google" />
+        Google ගිණුමෙන් ඇතුළු වන්න
+      </button>
+    </div>
+  </div>
+
+  <!-- MAIN APPLICATION -->
+  <div id="app-screen" class="hidden">
+    <header class="bg-slate-900 text-white shadow-md sticky top-0 z-30 no-print">
+      <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2.5">
+          <span class="bg-blue-600 text-white font-bold px-2.5 py-1 rounded-lg text-sm">FS</span>
+          <div>
+            <h1 class="font-bold text-sm sm:text-lg leading-tight">Freesat Service Manager</h1>
+            <div class="flex items-center gap-1.5 text-[11px] text-slate-300">
+              <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span id="user-email-display" class="text-blue-300 truncate max-w-[160px] sm:max-w-none"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <span id="user-role-badge" class="px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-bold uppercase bg-blue-500/20 text-blue-300 border border-blue-400/30">
+            ROLE
+          </span>
+          <button id="logout-btn" class="px-2.5 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg">
+            Logout
+          </button>
+        </div>
+      </div>
+
+      <!-- Desktop Tabs -->
+      <nav class="hidden sm:block bg-slate-800 border-t border-slate-700">
+        <div class="max-w-7xl mx-auto px-4 flex gap-1 py-1.5 text-sm">
+          <button onclick="switchTab('stock')" id="tab-stock" class="tab-btn px-4 py-2 rounded-lg font-medium bg-blue-600 text-white">
+            📦 Main Stock (<span id="count-items">0</span>)
+          </button>
+          <button onclick="switchTab('techstock')" id="tab-techstock" class="tab-btn tech-or-admin hidden px-4 py-2 rounded-lg font-medium text-slate-300 hover:bg-slate-700">
+            🎒 Tech Stock (<span id="count-tech-items">0</span>)
+          </button>
+          <button onclick="switchTab('repairs')" id="tab-repairs" class="tab-btn px-4 py-2 rounded-lg font-medium text-slate-300 hover:bg-slate-700">
+            🔧 STB Repairs & Reports (<span id="count-repairs">0</span>)
+          </button>
+          <button onclick="switchTab('admin')" id="tab-admin" class="tab-btn admin-only hidden px-4 py-2 rounded-lg font-medium text-slate-300 hover:bg-slate-700">
+            ⚙️ Admin & User Roles
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav id="mobile-bottom-nav" class="sm:hidden fixed bottom-0 inset-x-0 bg-slate-900 border-t border-slate-700 z-40 flex justify-around py-1.5 text-xs no-print">
+      <button onclick="switchTab('stock')" id="mob-tab-stock" class="flex flex-col items-center py-1 px-2 text-blue-400 font-bold">
+        <span class="text-lg">📦</span><span>Stock</span>
+      </button>
+      <button onclick="switchTab('techstock')" id="mob-tab-techstock" class="tech-or-admin hidden flex flex-col items-center py-1 px-2 text-slate-400">
+        <span class="text-lg">🎒</span><span>Tech Stock</span>
+      </button>
+      <button onclick="switchTab('repairs')" id="mob-tab-repairs" class="flex flex-col items-center py-1 px-2 text-slate-400">
+        <span class="text-lg">🔧</span><span>Repairs</span>
+      </button>
+      <button onclick="switchTab('admin')" id="mob-tab-admin" class="admin-only hidden flex flex-col items-center py-1 px-2 text-slate-400">
+        <span class="text-lg">⚙️</span><span>Admin</span>
+      </button>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
+      <!-- Summary Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-5 no-print">
+        <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200">
+          <p class="text-[11px] text-slate-500 font-medium uppercase">Paid Stock</p>
+          <p id="stat-paid-val" class="text-base sm:text-xl font-bold text-slate-900 mt-0.5">Rs. 0</p>
+          <p id="stat-paid-qty" class="text-[11px] text-slate-500 mt-0.5">0 pcs</p>
+        </div>
+        <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200">
+          <p class="text-[11px] text-slate-500 font-medium uppercase">Free / Sample</p>
+          <p id="stat-free-val" class="text-base sm:text-xl font-bold text-emerald-600 mt-0.5">Rs. 0</p>
+          <p id="stat-free-qty" class="text-[11px] text-slate-500 mt-0.5">0 pcs</p>
+        </div>
+        <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200">
+          <p class="text-[11px] text-slate-500 font-medium uppercase">Low Stock</p>
+          <p id="stat-low-stock" class="text-base sm:text-xl font-bold text-amber-600 mt-0.5">0 Items</p>
+          <p class="text-[11px] text-slate-500 mt-0.5">Alerts</p>
+        </div>
+        <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200">
+          <p class="text-[11px] text-slate-500 font-medium uppercase">STB Repairs</p>
+          <p id="stat-repairs" class="text-base sm:text-xl font-bold text-blue-600 mt-0.5">0 Units</p>
+          <p id="stat-repair-cost" class="text-[11px] text-slate-500 mt-0.5">Rs. 0</p>
+        </div>
+      </div>
+
+      <!-- TAB 1: MAIN STOCK BALANCE -->
+      <section id="view-stock" class="space-y-4">
+        <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-2.5">
+          <div class="flex flex-wrap items-center gap-2 flex-1 w-full">
+            <input type="text" id="stock-search" oninput="renderInventory()"
+              placeholder="🔍 PCB Code (U2, SD2) හෝ නම සොයන්න..."
+              class="flex-1 min-w-[200px] px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+            <select id="stock-category" onchange="renderInventory()" class="px-2.5 py-2 border border-slate-300 rounded-lg text-sm bg-white">
+              <option value="ALL">All Categories</option>
+              <option value="IC">IC</option><option value="Capacitors">Capacitors</option><option value="Resistors">Resistors</option>
+              <option value="Diodes & MOSFETs">Diodes & MOSFETs</option><option value="Inductors & Beads">Inductors & Beads</option>
+              <option value="Connectors & Jacks">Connectors & Jacks</option><option value="Crystals & Sensors">Crystals & Sensors</option>
+              <option value="Hardware & Mechanical">Hardware & Mechanical</option>
+            </select>
+            <select id="stock-type-filter" onchange="renderInventory()" class="px-2.5 py-2 border border-slate-300 rounded-lg text-sm bg-white">
+              <option value="ALL">Paid + Free</option>
+              <option value="PAID">Paid Only</option>
+              <option value="FREE">Free Only</option>
+              <option value="LOW">Low Stock</option>
+            </select>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="exportCSV()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-medium rounded-lg border border-slate-300">📥 CSV</button>
+            <button onclick="openItemModal()" class="admin-only hidden px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold rounded-lg shadow">+ Add Item</button>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-sm">
+              <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-xs">
+                <tr>
+                  <th class="py-3 px-3">#</th>
+                  <th class="py-3 px-3">PCB Code</th>
+                  <th class="py-3 px-3">Component Name</th>
+                  <th class="py-3 px-3 hidden md:table-cell">Category</th>
+                  <th class="py-3 px-3 text-right">Qty</th>
+                  <th class="py-3 px-3 text-right hidden sm:table-cell">Price</th>
+                  <th class="py-3 px-3 text-right">Total</th>
+                  <th class="py-3 px-3 text-center">Type</th>
+                  <th class="py-3 px-3 text-center admin-only hidden">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="inventory-tbody" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: TECHNICIAN STOCK ISSUE & BALANCE -->
+      <section id="view-techstock" class="hidden space-y-5">
+        <!-- Admin Issue Form -->
+        <div class="admin-only hidden bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-indigo-200 space-y-4">
+          <div>
+            <h2 class="text-base font-bold text-slate-900">🎒 Technician වෙත උපාංග නිකුත් කිරීම (Issue Parts to Technician)</h2>
+            <p class="text-xs text-slate-500 mt-0.5">ප්‍රධාන තොගයෙන් (Main Stock) Technician කෙනෙකුට Parts නිකුත් කළ විට Main Stock එකෙන් අඩු වී ඔහුගේ ගිණුමට එකතු වේ.</p>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Technician Email ලිපිනය *</label>
+              <select id="issue-tech-email" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white font-medium"></select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">දිනය (Issue Date)</label>
+              <input type="date" id="issue-date" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+            </div>
+          </div>
+
+          <!-- Part Selector for Issue -->
+          <div class="bg-slate-50 p-3.5 rounded-lg border border-slate-200 space-y-2.5">
+            <label class="block text-xs font-semibold text-slate-700">නිකුත් කරන උපාංගය (Part from Main Stock) තෝරන්න:</label>
+            <input type="text" id="issue-part-search" oninput="populateIssueDropdown()"
+              placeholder="🔍 PCB Code හෝ නම ටයිප් කර සොයන්න (උදා: U11, U2, SD2)..."
+              class="w-full px-3.5 py-2 border border-indigo-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+            <div class="flex flex-wrap gap-2">
+              <select id="issue-part-select" class="flex-1 min-w-[200px] px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white"></select>
+              <input type="number" id="issue-part-qty" value="1" min="1" class="w-24 px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+              <button type="button" onclick="addIssuePartToDraft()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-sm font-medium rounded-lg">
+                + Add to Issue List
+              </button>
+            </div>
+            <div id="issue-draft-parts" class="space-y-1.5"></div>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <input type="text" id="issue-note" placeholder="සටහන (උදා: Weekly stock issue)"
+              class="flex-1 min-w-[200px] px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+            <button type="button" onclick="submitIssueParts()" id="btn-submit-issue"
+              class="w-full sm:w-auto px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg shadow">
+              📤 Issue Parts to Technician
+            </button>
+          </div>
+        </div>
+
+        <!-- Technician Stock Balance Table -->
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h3 class="font-bold text-slate-900 text-sm sm:text-base" id="tech-stock-heading">🎒 Technicians සතුව ඇති ඉතිරි තොග (Current Technician Stock)</h3>
+              <p class="text-xs text-slate-500">Technician විසින් Repair වලට භාවිතා කරන විට මෙම තොගයෙන් ස්වයංක්‍රීයව අඩු වේ.</p>
+            </div>
+            <select id="filter-tech-stock-user" onchange="renderTechStock()" class="admin-only hidden px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white">
+              <option value="ALL">All Technicians</option>
+            </select>
+          </div>
+
+          <div class="overflow-x-auto border rounded-lg">
+            <table class="w-full text-left border-collapse text-sm">
+              <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-xs">
+                <tr>
+                  <th class="py-3 px-3">Technician</th>
+                  <th class="py-3 px-3">PCB Code</th>
+                  <th class="py-3 px-3">Component Name</th>
+                  <th class="py-3 px-3 text-right">Remaining Qty</th>
+                  <th class="py-3 px-3 text-right hidden sm:table-cell">Value (Rs.)</th>
+                  <th class="py-3 px-3 text-center admin-only hidden">Return to Main</th>
+                </tr>
+              </thead>
+              <tbody id="tech-stock-tbody" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Issue History Log -->
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
+          <h3 class="font-bold text-slate-800 text-sm">📜 උපාංග නිකුත් කිරීමේ ඉතිහාසය (Issue / Return History)</h3>
+          <div class="overflow-x-auto border rounded-lg">
+            <table class="w-full text-left border-collapse text-xs sm:text-sm">
+              <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-xs">
+                <tr>
+                  <th class="py-2.5 px-3">Date</th>
+                  <th class="py-2.5 px-3">Technician</th>
+                  <th class="py-2.5 px-3">Part</th>
+                  <th class="py-2.5 px-3 text-right">Qty</th>
+                  <th class="py-2.5 px-3">Note / By</th>
+                </tr>
+              </thead>
+              <tbody id="issue-history-tbody" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: STB REPAIRS & REPORTS -->
+      <section id="view-repairs" class="hidden space-y-5">
+        <div id="print-report-header" class="hidden border-b-2 border-slate-800 pb-4 mb-4">
+          <div class="flex justify-between items-start">
+            <div>
+              <h1 class="text-2xl font-bold text-slate-900">FREESAT STB SERVICE & REPAIR REPORT</h1>
+              <p id="print-report-subtitle" class="text-sm text-slate-600 mt-1">All Repair Records</p>
+            </div>
+            <div class="text-right text-xs text-slate-500">
+              <p id="print-generated-date"></p>
+              <p id="print-generated-by"></p>
+            </div>
+          </div>
+          <div id="print-summary-strip" class="grid grid-cols-5 gap-2 mt-4 bg-slate-100 p-3 rounded border text-xs"></div>
+        </div>
+
+        <!-- Add Repair / Warranty Void Form -->
+        <div id="repair-form-card" class="tech-or-admin hidden bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-blue-200">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <h2 class="text-base font-bold text-slate-900">🛠️ අලුත් STB Repair / Warranty Void වාර්තාවක් ඇතුළත් කරන්න</h2>
+            <span id="repair-stock-source-badge" class="px-2.5 py-1 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800">
+              Deducting from: My Tech Stock
+            </span>
+          </div>
+          
+          <!-- Dynamic Repeat Repair / Warranty Void Alert Banner -->
+          <div id="repeat-serial-warning" class="hidden mb-3 p-3 rounded-lg border text-xs font-semibold"></div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">STB Serial Number *</label>
+              <input type="text" id="rep-serial" oninput="checkDuplicateSerial()" placeholder="011125164578154"
+                class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">දිනය (Date)</label>
+              <input type="date" id="rep-date" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Warranty තත්ත්වය</label>
+              <select id="rep-warranty" onchange="onWarrantyChange()" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white font-medium">
+                <option value="WITH_WARRANTY">✅ With Warranty</option>
+                <option value="NO_WARRANTY">💰 Out of Warranty / Paid</option>
+                <option value="WARRANTY_VOID">🚫 Warranty Void (Liquid / Damage)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Warranty Void Reason Box -->
+          <div id="rep-void-reason-box" class="hidden mb-4 p-3.5 rounded-lg bg-red-50 border border-red-300 space-y-2">
+            <label class="block text-xs font-bold text-red-900">🚫 Warranty අවලංගු කිරීමට හේතුව (Warranty Void Condition) *</label>
+            <select id="rep-void-reason" class="w-full sm:w-2/3 px-3 py-2 border border-red-300 rounded-lg text-sm bg-white text-red-900 font-medium">
+              <option value="Liquid / Water Damage">💧 Liquid / Water Damage (වතුර යෑම)</option>
+              <option value="Lightning / Power Surge">⚡ Lightning / Power Surge (අකුණු ගැසීම / විදුලි සැර)</option>
+              <option value="Physical / Drop Damage">🔨 Physical / Drop Damage (බිම වැටී කැඩීම / පලුදු වීම)</option>
+              <option value="Warranty Seal Broken / Tampered">🔓 Warranty Seal Broken / Tampered (සීල් කඩා වෙනත් අයෙකු අලුත්වැඩියා කිරීම)</option>
+              <option value="Wrong Power Adapter Used">🔌 Wrong Power Adapter Used (වැරදි Adapter භාවිතය)</option>
+              <option value="Insect / Pest Damage">🐜 Insect / Pest Damage (කුහුඹුවන් / කෘමි හානි)</option>
+              <option value="Other Customer Damage">⚠️ Other Customer Damage (වෙනත් පාරිභෝගික හානි)</option>
+            </select>
+            <div class="text-[11px] text-red-800 space-y-0.5">
+              <p>✅ <b>අලුත්වැඩියා කළ හැකි නම් (Paid Repair):</b> පහතින් අදාළ Parts තෝරා <b>+ Add Part</b> ඔබා Save කරන්න.</p>
+              <p>🚫 <b>අලුත්වැඩියා කළ නොහැකි නම් (BER):</b> Parts තෝරන්නේ නැතිව කෙලින්ම Save ඔබන්න.</p>
+            </div>
+          </div>
+
+          <!-- Parts Selector WITH PCB CODE SEARCH -->
+          <div id="parts-selector-box" class="bg-slate-50 p-3.5 rounded-lg border border-slate-200 mb-3 space-y-2.5">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <label class="text-xs font-semibold text-slate-700" id="parts-selector-label">මාරු කළ උපාංග (Replaced Parts) තෝරන්න:</label>
+              <span id="part-match-count" class="text-[11px] font-medium text-blue-600">0 items available</span>
+            </div>
+
+            <div class="relative">
+              <input type="text" id="rep-part-search" oninput="populatePartDropdown()"
+                placeholder="🔍 PCB Code ටයිප් කර සොයන්න (උදා: U11, SD2, CU11, U2, J-HDMI)..."
+                class="w-full px-3.5 py-2 border border-blue-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+              <button type="button" onclick="clearPartSearch()" id="btn-clear-part-search"
+                class="hidden absolute right-2.5 top-2 text-xs text-slate-400 hover:text-slate-700 font-bold px-1">✕</button>
+            </div>
+
+            <div class="flex flex-wrap gap-2">
+              <select id="rep-part-select" class="flex-1 min-w-[200px] px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white"></select>
+              <input type="number" id="rep-part-qty" value="1" min="1" class="w-20 px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+              <button type="button" onclick="addPartToDraft()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-sm font-medium rounded-lg">
+                + Add Part
+              </button>
+            </div>
+            <div id="rep-draft-parts" class="mt-2 space-y-1.5"></div>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <input type="text" id="rep-note" placeholder="දෝෂය / සටහන (උදා: Liquid damage - U2 & SD2 replaced)"
+              class="flex-1 min-w-[200px] px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+            <button type="button" onclick="submitRepair()" id="btn-submit-repair"
+              class="w-full sm:w-auto px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg shadow">
+              ✅ Save Repair & Deduct Stock
+            </button>
+          </div>
+        </div>
+
+        <!-- Report Filters -->
+        <div id="repair-filter-bar" class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <h3 class="font-bold text-slate-800 text-sm sm:text-base">📋 STB Repair වාර්තා සහ Reports</h3>
+            <div class="flex gap-2">
+              <button onclick="exportRepairsCSV()" class="px-3 py-1.5 bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg border">📥 CSV</button>
+              <button onclick="printRepairReport()" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg shadow">🖨️ PDF / Print</button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+            <input type="text" id="repair-search" oninput="renderRepairs()" placeholder="🔍 Serial No, Part හෝ Void..." class="px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+            <input type="month" id="repair-month-filter" onchange="renderRepairs()" class="px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white" />
+            <select id="repair-tech-filter" onchange="renderRepairs()" class="px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white">
+              <option value="ALL">All Technicians</option>
+            </select>
+            <select id="repair-warranty-filter" onchange="renderRepairs()" class="px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white">
+              <option value="ALL">Warranty: All</option>
+              <option value="WITH_WARRANTY">With Warranty</option>
+              <option value="NO_WARRANTY">Out of Warranty (Paid)</option>
+              <option value="WARRANTY_VOID">Warranty Void Only</option>
+            </select>
+          </div>
+
+          <div id="filtered-repair-stats" class="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-2 border-t border-slate-100 text-xs"></div>
+        </div>
+
+        <!-- Repair Table -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden print-shadow-none">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-sm">
+              <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-xs">
+                <tr>
+                  <th class="py-3 px-3">Date</th>
+                  <th class="py-3 px-3">Serial No</th>
+                  <th class="py-3 px-3">Warranty Status</th>
+                  <th class="py-3 px-3">Replaced Parts</th>
+                  <th class="py-3 px-3">Note / Tech</th>
+                  <th class="py-3 px-3 text-right">Cost</th>
+                  <th class="py-3 px-3 text-center admin-only hidden no-print">Admin</th>
+                </tr>
+              </thead>
+              <tbody id="repairs-tbody" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 print-shadow-none">
+          <h4 class="text-xs font-bold uppercase text-slate-600 mb-2">📊 Parts Consumption Summary</h4>
+          <div id="parts-consumption-summary" class="flex flex-wrap gap-2 text-xs"></div>
+        </div>
+      </section>
+
+      <!-- TAB 4: ADMIN & USER ROLES -->
+      <section id="view-admin" class="hidden space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+            <h2 class="text-base font-bold text-slate-900 mb-1">👥 User Roles</h2>
+            <p class="text-xs text-slate-500 mb-4">Authentication හි සෑදූ Email සඳහා Role ලබා දෙන්න.</p>
+            <div class="flex flex-wrap gap-2 mb-4">
+              <input type="email" id="role-email-input" placeholder="tech2@freesat.lk" class="flex-1 min-w-[160px] px-3 py-2 border rounded-lg text-sm" />
+              <select id="role-select-input" class="px-3 py-2 border rounded-lg text-sm bg-white">
+                <option value="technician">Technician</option>
+                <option value="viewer">Viewer</option>
+                <option value="admin">Admin</option>
+              </select>
+              <button onclick="saveUserRole()" class="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg">Save</button>
+            </div>
+            <div class="border rounded-lg overflow-hidden">
+              <table class="w-full text-sm text-left">
+                <thead class="bg-slate-50 text-xs uppercase text-slate-600 border-b">
+                  <tr><th class="py-2 px-3">Email</th><th class="py-2 px-3">Role</th><th class="py-2 px-3 text-right">Action</th></tr>
+                </thead>
+                <tbody id="roles-tbody" class="divide-y divide-slate-100"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Cloud Backup & Restore -->
+          <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 space-y-4">
+            <div>
+              <h2 class="text-base font-bold text-slate-900">💾 Cloud Backup & Restore</h2>
+              <p class="text-xs text-slate-500 mt-0.5">දත්ත Backup ලබා ගැනීමට හෝ කලින් ගත් JSON Backup ගොනුවක් නැවත Restore කිරීමට පහත බොත්තම් භාවිතා කරන්න.</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <button onclick="exportJSON()" class="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-900 text-white text-sm font-semibold rounded-lg shadow">
+                💾 Download JSON Backup
+              </button>
+              <button id="btn-restore-json" onclick="document.getElementById('restore-json-input').click()"
+                class="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg shadow">
+                📤 Restore JSON Backup
+              </button>
+              <input type="file" id="restore-json-input" accept=".json,application/json" class="hidden" onchange="handleRestoreJSON(event)" />
+            </div>
+
+            <div class="pt-4 border-t bg-amber-50/70 p-3.5 rounded-lg border border-amber-200 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-amber-900">⚠️ Factory Reset Protection</span>
+                <label class="inline-flex items-center gap-1.5 text-xs text-amber-800 cursor-pointer">
+                  <input type="checkbox" id="unlock-seed-chk" onchange="toggleSeedLock()" />
+                  <span>Unlock</span>
+                </label>
+              </div>
+              <button onclick="seedInitialData()" id="btn-seed" disabled
+                class="w-full py-2 px-4 bg-indigo-600 disabled:bg-slate-300 text-white text-xs font-semibold rounded-lg">
+                🔒 Locked: Reset Initial 50 Items
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ADD / EDIT MODAL -->
+  <div id="item-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl max-w-lg w-full p-5 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <h3 class="text-lg font-bold text-slate-900 mb-3">Add / Edit Component</h3>
+      <input type="hidden" id="edit-item-id" />
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+        <div><label class="block font-medium mb-1">ID #</label><input type="number" id="inp-id" class="w-full px-3 py-2 border rounded-lg" /></div>
+        <div><label class="block font-medium mb-1">PCB Code *</label><input type="text" id="inp-pcb" class="w-full px-3 py-2 border rounded-lg" /></div>
+        <div class="sm:col-span-2"><label class="block font-medium mb-1">Component Name *</label><input type="text" id="inp-name" class="w-full px-3 py-2 border rounded-lg" /></div>
+        <div><label class="block font-medium mb-1">BOM Code</label><input type="text" id="inp-bom" class="w-full px-3 py-2 border rounded-lg" /></div>
+        <div>
+          <label class="block font-medium mb-1">Category</label>
+          <select id="inp-cat" class="w-full px-3 py-2 border rounded-lg bg-white">
+            <option value="IC">IC</option><option value="Capacitors">Capacitors</option><option value="Resistors">Resistors</option>
+            <option value="Diodes & MOSFETs">Diodes & MOSFETs</option><option value="Inductors & Beads">Inductors & Beads</option>
+            <option value="Connectors & Jacks">Connectors & Jacks</option><option value="Crystals & Sensors">Crystals & Sensors</option>
+            <option value="Hardware & Mechanical">Hardware & Mechanical</option>
+          </select>
+        </div>
+        <div><label class="block font-medium mb-1">Qty</label><input type="number" id="inp-qty" class="w-full px-3 py-2 border rounded-lg" /></div>
+        <div><label class="block font-medium mb-1">Price (Rs.)</label><input type="number" step="0.01" id="inp-price" class="w-full px-3 py-2 border rounded-lg" /></div>
+        <div><label class="block font-medium mb-1">Min Stock</label><input type="number" id="inp-min" value="20" class="w-full px-3 py-2 border rounded-lg" /></div>
+        <div class="flex items-center pt-5">
+          <label class="inline-flex items-center gap-2"><input type="checkbox" id="inp-free" /><span>Free / Sample Stock</span></label>
+        </div>
+      </div>
+      <div class="mt-5 flex justify-end gap-2">
+        <button onclick="closeItemModal()" class="px-4 py-2 border rounded-lg text-sm">Cancel</button>
+        <button onclick="saveItem()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FIREBASE SDK & LOGIC -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, getDoc, writeBatch, increment } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC1UHbz0ynMcboDr0fPs1g0QgEbo9mnVcE",
+      authDomain: "freesat-inventory.firebaseapp.com",
+      projectId: "freesat-inventory",
+      storageBucket: "freesat-inventory.firebasestorage.app",
+      messagingSenderId: "905584238996",
+      appId: "1:905584238996:web:b2f3cfa75dbb4139b4af81",
+      measurementId: "G-0XPXZLT886"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const INITIAL_DATA = {
+      inventory: [
+        { id: 1, pcbCode: "C113", name: "TCC0402C0G3R9C500AT (0402 3.9pF 50V)", bomCode: "620310-3390C00", category: "Capacitors", qty: 7000, price: 1, minStock: 500, isFree: false },
+        { id: 2, pcbCode: "AR8,AR9,AR120", name: "0603 560Ω SMD Resistor", bomCode: "510126-0561F00", category: "Resistors", qty: 200, price: 1, minStock: 50, isFree: false },
+        { id: 3, pcbCode: "AR24", name: "0805 10Ω ±5% SMD Resistor", bomCode: "510136-0100J00", category: "Resistors", qty: 200, price: 1, minStock: 50, isFree: false },
+        { id: 4, pcbCode: "U11-A", name: "RDA5815M Satellite Tuner IC (Lot 1)", bomCode: "641110-0055300", category: "IC", qty: 85, price: 100, minStock: 20, isFree: false },
+        { id: 5, pcbCode: "U11-B", name: "RDA5815M QFN-20 Satellite Tuner IC (Lot 2)", bomCode: "641110-0055300", category: "IC", qty: 102, price: 100, minStock: 20, isFree: false },
+        { id: 6, pcbCode: "SL4", name: "0805 3A 120Ω Ferrite Bead", bomCode: "532126-0000800", category: "Inductors & Beads", qty: 200, price: 3, minStock: 50, isFree: false },
+        { id: 7, pcbCode: "U2", name: "STI8036 LNB Power Regulator IC", bomCode: "656110-0008700", category: "IC", qty: 102, price: 60, minStock: 25, isFree: false },
+        { id: 8, pcbCode: "U9", name: "WR1117AN-ADA70R LDO Regulator", bomCode: "656118-0002600", category: "IC", qty: 200, price: 25, minStock: 50, isFree: false },
+        { id: 9, pcbCode: "AC19,AC25", name: "0603 6.3V 4.7µF SMD Capacitor", bomCode: "520126-0475M00", category: "Capacitors", qty: 200, price: 2, minStock: 50, isFree: false },
+        { id: 10, pcbCode: "U12,U13,U14", name: "IC;ESD GTT0524PFC DFN2510-10L GT", bomCode: "641110-0088600", category: "IC", qty: 199, price: 24.13, minStock: 50, isFree: true },
+        { id: 11, pcbCode: "C-10U", name: "TCC0805X5R106M160FTN (0805 10µF 16V)", bomCode: "520330-2106M00", category: "Capacitors", qty: 3000, price: 3, minStock: 300, isFree: false },
+        { id: 12, pcbCode: "C-100N", name: "TCC0402X5R104M160AT (0402 100nF 16V)", bomCode: "520310-2104M00", category: "Capacitors", qty: 10000, price: 1, minStock: 1000, isFree: true },
+        { id: 13, pcbCode: "C-2R2", name: "TCC0402C0G2R2C500AT (0402 2.2pF 50V)", bomCode: "520510-5228C00", category: "Capacitors", qty: 10000, price: 1, minStock: 1000, isFree: false },
+        { id: 14, pcbCode: "D1", name: "BAV99 (A7) Switching Diode SOT-23", bomCode: "611106-0000100", category: "Diodes & MOSFETs", qty: 3000, price: 3, minStock: 300, isFree: false },
+        { id: 15, pcbCode: "D-SS14", name: "1N5819 / SS14 Schottky Diode SMA (Reel)", bomCode: "611186-0000900", category: "Diodes & MOSFETs", qty: 2000, price: 5, minStock: 200, isFree: false },
+        { id: 16, pcbCode: "Q8", name: "SI2301 (A1SHB) P-Channel MOSFET (Reel)", bomCode: "621220-0000900", category: "Diodes & MOSFETs", qty: 3000, price: 6, minStock: 300, isFree: false },
+        { id: 17, pcbCode: "J-DC", name: "SMD DC Power Jack (2.0mm)", bomCode: "440550-0001900", category: "Connectors & Jacks", qty: 400, price: 15, minStock: 50, isFree: false },
+        { id: 18, pcbCode: "J-AV", name: "SMD 3.5mm Audio/AV Socket", bomCode: "440810-0002800", category: "Connectors & Jacks", qty: 1000, price: 15, minStock: 100, isFree: false },
+        { id: 19, pcbCode: "J-HDMI", name: "HDMI Type-A 19P SMT Port", bomCode: "440270-0002000", category: "Connectors & Jacks", qty: 480, price: 45, minStock: 50, isFree: false },
+        { id: 20, pcbCode: "U-13", name: "Montage M88TS6011-T Satellite Tuner IC", bomCode: "641110-0071400", category: "IC", qty: 6000, price: 58.33, minStock: 500, isFree: false },
+        { id: 21, pcbCode: "IRD1", name: "IR Receiver Module (3-Pin Sensor)", bomCode: "593118-0002000", category: "Crystals & Sensors", qty: 200, price: 20, minStock: 40, isFree: false },
+        { id: 22, pcbCode: "U8201", name: "GTE5C008V SOT23-6 ESD-TVS Protection IC (641110-0088500)", bomCode: "641110-0088500", category: "IC", qty: 3000, price: 18, minStock: 300, isFree: false },
+        { id: 23, pcbCode: "pu1,pu2,u807", name: "Joulwatt JW5352MSOTB#TR Buck IC", bomCode: "641110-0089300", category: "IC", qty: 2997, price: 25, minStock: 300, isFree: false },
+        { id: 24, pcbCode: "U-TM34", name: "Tollsemi TMI3410 Buck Converter IC", bomCode: "641118-0035500", category: "IC", qty: 3000, price: 20, minStock: 300, isFree: false },
+        { id: 25, pcbCode: "U12,U13,U14", name: "GTT0524PFC DFN2510-10L ESD Protection IC (641110-0088600)", bomCode: "641110-0088600", category: "IC", qty: 3000, price: 24.13, minStock: 300, isFree: false },
+        { id: 26, pcbCode: "DC Power Jack", name: "DC-005 DC Power Jack Socket 2.0mm (440550-0000200)", bomCode: "440550-0000200", category: "Connectors & Jacks", qty: 700, price: 10, minStock: 150, isFree: false },
+        { id: 27, pcbCode: "RF-IN", name: "F-Type RF/Satellite Tuner Connector & Shield (132100-0007100)", bomCode: "132100-0007100", category: "Connectors & Jacks", qty: 50, price: 58, minStock: 20, isFree: false },
+        { id: 28, pcbCode: "CT11", name: "0402 50V 22pF ±0.25pF SMD Capacitor (MLCC) (520510-5228C00)", bomCode: "520510-5228C00", category: "Capacitors", qty: 100, price: 1, minStock: 50, isFree: true },
+        { id: 29, pcbCode: "U-FLASH", name: "ZB25VQ128DSJG 128Mbit SPI NOR Flash IC (652618-0001400)", bomCode: "652618-0001400", category: "IC", qty: 300, price: 80, minStock: 50, isFree: false },
+        { id: 30, pcbCode: "QA4,QP5", name: "NPN 2N3904 Transistor Lot 1 (621116-0000300)", bomCode: "621116-0000300", category: "Diodes & MOSFETs", qty: 30, price: 1.5, minStock: 10, isFree: true },
+        { id: 31, pcbCode: "IMQ1", name: "SI2301 P-Channel MOSFET Strip (621220-0000900)", bomCode: "621220-0000900", category: "Diodes & MOSFETs", qty: 50, price: 2.5, minStock: 15, isFree: true },
+        { id: 32, pcbCode: "SD1", name: "SS14 / 1N5819 Schottky Diode Strip (611186-0000900)", bomCode: "611186-0000900", category: "Diodes & MOSFETs", qty: 50, price: 2, minStock: 15, isFree: true },
+        { id: 33, pcbCode: "U8201", name: "GTE SL008V IC (641110-0088500)", bomCode: "641110-0088500", category: "IC", qty: 100, price: 18, minStock: 15, isFree: true },
+        { id: 34, pcbCode: "CU11,CP64", name: "16V 220µF 6.3×7.7mm SMD Electrolytic Capacitor (521160-2221M10)", bomCode: "521160-2221M10", category: "Capacitors", qty: 50, price: 9, minStock: 15, isFree: true },
+        { id: 35, pcbCode: "SD2", name: "1N4007 (M7) SMD Rectifier Diode (611186-0000500)", bomCode: "611186-0000500", category: "Diodes & MOSFETs", qty: 100, price: 1.5, minStock: 25, isFree: true },
+        { id: 36, pcbCode: "C-0805-10U", name: "0805 16V 10µF ±20% SMD Capacitor Strip (520330-2106M00)", bomCode: "520330-2106M00", category: "Capacitors", qty: 100, price: 2, minStock: 25, isFree: false },
+        { id: 37, pcbCode: "R72/R50", name: "0805 100Ω ±5% 1/8W SMD Resistor (510136-0101J00)", bomCode: "510136-0101J00", category: "Resistors", qty: 25, price: 1, minStock: 10, isFree: false },
+        { id: 38, pcbCode: "FB-120R", name: "0805 (2012) 3A 120R ±25% Ferrite Bead Strip (532126-0000800)", bomCode: "532126-0000800", category: "Inductors & Beads", qty: 100, price: 2, minStock: 25, isFree: false },
+        { id: 39, pcbCode: "QA4,QP5", name: "2N3904 NPN Transistor Strip (621116-0000300)", bomCode: "621116-0000300", category: "Diodes & MOSFETs", qty: 100, price: 1.5, minStock: 25, isFree: false },
+        { id: 40, pcbCode: "C-0805-10UK", name: "0805 16V 10µF ±10% SMD Capacitor Strip (520330-2106K00)", bomCode: "520330-2106K00", category: "Capacitors", qty: 100, price: 2, minStock: 25, isFree: false },
+        { id: 41, pcbCode: "R-100R", name: "0805 100Ω ±5% 1/8W SMD Resistor Strip (510136-0101J00)", bomCode: "510136-0101J00", category: "Resistors", qty: 100, price: 1, minStock: 25, isFree: false },
+        { id: 42, pcbCode: "QA4,QP5", name: "2N3904 NPN Transistor Strip Lot 2 (621116-0000300)", bomCode: "621116-0000300", category: "Diodes & MOSFETs", qty: 50, price: 1.5, minStock: 15, isFree: true },
+        { id: 43, pcbCode: "CU11,CP64", name: "16V 220µF ±20% Φ6.3×7.7mm SMD Electrolytic Capacitor (521160-2221M10)", bomCode: "521160-2221M10", category: "Capacitors", qty: 20, price: 9, minStock: 10, isFree: true },
+        { id: 44, pcbCode: "CPU", name: "Montage MS2230-0100 Main STB SoC / CPU Tray (651110-W281W)", bomCode: "651110-W281W", category: "IC", qty: 200, price: 750, minStock: 30, isFree: false },
+        { id: 45, pcbCode: "CU11,CP64,C89,C840,C91", name: "VT 16V 220µF 6.3×7.7mm SMD Electrolytic Capacitor Reel (521160-2221M10)", bomCode: "521160-2221M10", category: "Capacitors", qty: 1000, price: 9, minStock: 150, isFree: false },
+        { id: 46, pcbCode: "CPU -Hi silicon", name: "HiSilicon Hi3716MRBCV431I0002S Main STB SoC / CPU", bomCode: "Hi3716MRBCV431I0002S", category: "IC", qty: 50, price: 850, minStock: 10, isFree: false },
+        { id: 47, pcbCode: "U2", name: "STI8036 LNB Power Regulator IC lot2", bomCode: "656110-0008700", category: "IC", qty: 95, price: 60, minStock: 25, isFree: false },
+        { id: 48, pcbCode: "D1", name: "BAV99 (A7) Switching Diode SOT-23-lot-2", bomCode: "611106-0000100", category: "Diodes & MOSFETs", qty: 100, price: 3, minStock: 20, isFree: true },
+        { id: 49, pcbCode: "SD2", name: "LL4007 DO-214AC Rectifier Diode Reel (611186-0000500)", bomCode: "611186-0000500", category: "Diodes & MOSFETs", qty: 2000, price: 1.5, minStock: 200, isFree: false },
+        { id: 50, pcbCode: "HS-CPU", name: "Aluminum Heatsink for STB SoC/CPU (181010-0006200)", bomCode: "181010-0006200", category: "Hardware & Mechanical", qty: 500, price: 12, minStock: 50, isFree: false }
+      ],
+      repairs: [
+        { id: "1794895116080", date: "2026-11-03", serialNumber: "011125164578154", warranty: "WITH_WARRANTY", parts: [{ itemId: 4, pcbCode: "U11-A", itemName: "RDA5815M Satellite Tuner IC (Lot 1)", qty: 1, unitPrice: 100 }], note: "No HDMI / Signal Fault" },
+        { id: "1794889639332", date: "2026-11-03", serialNumber: "011125171248510", warranty: "WITH_WARRANTY", parts: [{ itemId: 10, pcbCode: "U12,U13,U14", itemName: "GT105-24PFC Crystal Oscillator (24pF)", qty: 1, unitPrice: 25 }, { itemId: 23, pcbCode: "U-JW53", itemName: "Joulwatt JW5352MSOTB#TR Buck IC", qty: 3, unitPrice: 25 }], note: "Power fault (New STB)" },
+        { id: "1794889334685", date: "2026-11-03", serialNumber: "011125207908428", warranty: "WITH_WARRANTY", parts: [{ itemId: 4, pcbCode: "U11-A", itemName: "RDA5815M Satellite Tuner IC (Lot 1)", qty: 1, unitPrice: 100 }], note: "Tunner IC Replace" },
+        { id: "1794889252718", date: "2026-11-05", serialNumber: "011125207907226", warranty: "WITH_WARRANTY", parts: [{ itemId: 4, pcbCode: "U11-A", itemName: "RDA5815M Satellite Tuner IC (Lot 1)", qty: 1, unitPrice: 100 }], note: "Tunner IC Replace" },
+        { id: "101", date: "2026-11-17", serialNumber: "FS-STB-2026-00145", warranty: "WITH_WARRANTY", parts: [{ itemId: 19, pcbCode: "J-HDMI", itemName: "HDMI Type-A 19P SMT Port", qty: 1, unitPrice: 45 }, { itemId: 26, pcbCode: "DC-005", itemName: "DC-005 DC Power Jack Socket 2.0mm (440550-0000200)", qty: 1, unitPrice: 10 }], note: "Sample Entry - HDMI & DC Jack replaced under warranty" }
+      ]
+    };
+
+    let currentUser = null, currentRole = "viewer";
+    let inventoryList = [], repairsList = [], techStockList = [], issueLogsList = [], usersList = [];
+    let currentFilteredRepairs = [], draftParts = [], issueDraftParts = [];
+
+    document.getElementById("rep-date").valueAsDate = new Date();
+    document.getElementById("issue-date").valueAsDate = new Date();
+
+    document.getElementById("login-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("login-email").value.trim();
+      const pass = document.getElementById("login-password").value;
+      const errBox = document.getElementById("login-error");
+      errBox.classList.add("hidden");
+      try { await signInWithEmailAndPassword(auth, email, pass); }
+      catch (err) { errBox.textContent = "Login අසාර්ථකයි: " + err.message; errBox.classList.remove("hidden"); }
+    });
+
+    document.getElementById("google-login-btn").addEventListener("click", async () => {
+      try { await signInWithPopup(auth, new GoogleAuthProvider()); }
+      catch (err) {
+        const errBox = document.getElementById("login-error");
+        errBox.textContent = "Google Login අසාර්ථකයි: " + err.message;
+        errBox.classList.remove("hidden");
+      }
+    });
+
+    document.getElementById("logout-btn").addEventListener("click", () => signOut(auth));
+
+    async function determineRole(email) {
+      const lower = email.toLowerCase();
+      if (lower === "lalanadesilva@googlemail.com" || lower === "admin@freesat.lk") return "admin";
+      try {
+        const snap = await getDoc(doc(db, "users", lower));
+        if (snap.exists() && snap.data().role) return snap.data().role;
+      } catch (e) {}
+      if (lower.includes("tech")) return "technician";
+      return "viewer";
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        currentUser = null;
+        document.getElementById("login-screen").classList.remove("hidden");
+        document.getElementById("app-screen").classList.add("hidden");
+        return;
+      }
+      currentUser = user;
+      currentRole = await determineRole(user.email);
+      document.getElementById("user-email-display").textContent = user.email;
+      document.getElementById("user-role-badge").textContent = currentRole.toUpperCase();
+
+      document.querySelectorAll(".admin-only").forEach(el => el.classList.toggle("hidden", currentRole !== "admin"));
+      document.querySelectorAll(".tech-or-admin").forEach(el => el.classList.toggle("hidden", currentRole !== "admin" && currentRole !== "technician"));
+
+      const sourceBadge = document.getElementById("repair-stock-source-badge");
+      const selectorLabel = document.getElementById("parts-selector-label");
+      if (currentRole === "technician") {
+        sourceBadge.textContent = "🎒 Deducting from: My Technician Stock";
+        sourceBadge.className = "px-2.5 py-1 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800 border border-indigo-300";
+        selectorLabel.textContent = "ඔබට නිකුත් කර ඇති උපාංග (My Issued Parts) තෝරන්න:";
+        document.getElementById("tech-stock-heading").textContent = "🎒 මා සතුව ඇති ඉතිරි තොග (My Technician Stock Balance)";
+      } else {
+        sourceBadge.textContent = "📦 Deducting from: Main Warehouse Stock";
+        sourceBadge.className = "px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-300";
+        selectorLabel.textContent = "මාරු කළ උපාංග (Replaced Parts from Main Stock) තෝරන්න:";
+      }
+
+      document.getElementById("login-screen").classList.add("hidden");
+      document.getElementById("app-screen").classList.remove("hidden");
+
+      // 1. Main Inventory Listener
+      onSnapshot(collection(db, "inventory"), (snap) => {
+        inventoryList = snap.docs.map(d => ({ docId: d.id, ...d.data() })).sort((a, b) => Number(a.id) - Number(b.id));
+        document.getElementById("count-items").textContent = inventoryList.length;
+        updateStats(); renderInventory(); populatePartDropdown(); populateIssueDropdown();
+      });
+
+      // 2. Technician Stock Listener
+      onSnapshot(collection(db, "tech_stock"), (snap) => {
+        techStockList = snap.docs.map(d => ({ docId: d.id, ...d.data() })).filter(t => Number(t.qty) > 0);
+        const myItems = currentRole === "technician"
+          ? techStockList.filter(t => String(t.techEmail || "").toLowerCase() === currentUser.email.toLowerCase())
+          : techStockList;
+        document.getElementById("count-tech-items").textContent = myItems.length;
+        renderTechStock();
+        populatePartDropdown();
+      });
+
+      // 3. Issue Logs Listener
+      onSnapshot(collection(db, "tech_issue_logs"), (snap) => {
+        issueLogsList = snap.docs.map(d => ({ docId: d.id, ...d.data() })).sort((a, b) => String(b.createdAt || b.date).localeCompare(String(a.createdAt || a.date)));
+        renderIssueLogs();
+      });
+
+      // 4. Repairs Listener
+      onSnapshot(collection(db, "repairs"), (snap) => {
+        repairsList = snap.docs.map(d => ({ docId: d.id, ...d.data() })).sort((a, b) => String(b.date).localeCompare(String(a.date)));
+        document.getElementById("count-repairs").textContent = repairsList.length;
+        updateStats(); populateTechFilterDropdown(); renderRepairs();
+      });
+
+      // 5. Users Listener (for Admin Roles & Technician Dropdown)
+      onSnapshot(collection(db, "users"), (snap) => {
+        usersList = snap.docs.map(d => ({ email: d.id, ...d.data() }));
+        populateTechnicianSelectors();
+        if (currentRole === "admin") {
+          document.getElementById("roles-tbody").innerHTML = usersList.map(u => `
+            <tr><td class="py-2 px-3 font-medium">${u.email}</td>
+            <td class="py-2 px-3"><span class="px-2 py-0.5 rounded text-xs font-bold uppercase bg-blue-100 text-blue-800">${u.role}</span></td>
+            <td class="py-2 px-3 text-right"><button onclick="deleteUserRole('${u.email}')" class="text-red-600 text-xs">Remove</button></td></tr>
+          `).join("");
+        }
+      });
+    });
+
+    function populateTechnicianSelectors() {
+      const techEmails = new Set();
+      usersList.filter(u => u.role === "technician").forEach(u => techEmails.add(u.email.toLowerCase()));
+      techStockList.forEach(t => { if (t.techEmail) techEmails.add(t.techEmail.toLowerCase()); });
+      repairsList.forEach(r => { if (r.addedBy && r.addedBy.toLowerCase().includes("tech")) techEmails.add(r.addedBy.toLowerCase()); });
+
+      const list = [...techEmails].sort();
+      const issueSel = document.getElementById("issue-tech-email");
+      if (issueSel) {
+        issueSel.innerHTML = list.length > 0
+          ? list.map(e => `<option value="${e}">${e}</option>`).join("")
+          : `<option value="">-- Admin ටැබ් එකෙන් Technician කෙනෙක් Add කරන්න --</option>`;
+      }
+      const filterSel = document.getElementById("filter-tech-stock-user");
+      if (filterSel) {
+        const prev = filterSel.value;
+        filterSel.innerHTML = `<option value="ALL">All Technicians</option>` + list.map(e => `<option value="${e}">${e}</option>`).join("");
+        if (prev && list.includes(prev)) filterSel.value = prev;
+      }
+    }
+
+    function updateStats() {
+      let paidVal = 0, paidQty = 0, freeVal = 0, freeQty = 0, lowCount = 0;
+      inventoryList.forEach(item => {
+        const val = (Number(item.qty) || 0) * (Number(item.price) || 0);
+        if (item.isFree) { freeVal += val; freeQty += Number(item.qty) || 0; }
+        else { paidVal += val; paidQty += Number(item.qty) || 0; }
+        if ((Number(item.qty) || 0) <= (Number(item.minStock) || 0)) lowCount++;
+      });
+      document.getElementById("stat-paid-val").textContent = "Rs. " + paidVal.toLocaleString("en-US", { maximumFractionDigits: 0 });
+      document.getElementById("stat-paid-qty").textContent = `${paidQty.toLocaleString()} pcs`;
+      document.getElementById("stat-free-val").textContent = "Rs. " + freeVal.toLocaleString("en-US", { maximumFractionDigits: 0 });
+      document.getElementById("stat-free-qty").textContent = `${freeQty.toLocaleString()} pcs`;
+      document.getElementById("stat-low-stock").textContent = `${lowCount} Items`;
+
+      let repairCost = 0;
+      repairsList.forEach(r => (r.parts || []).forEach(p => repairCost += (Number(p.qty) || 0) * (Number(p.unitPrice) || 0)));
+      document.getElementById("stat-repairs").textContent = `${repairsList.length} Units`;
+      document.getElementById("stat-repair-cost").textContent = "Rs. " + repairCost.toLocaleString("en-US", { maximumFractionDigits: 0 });
+    }
+
+    window.renderInventory = () => {
+      const q = document.getElementById("stock-search").value.toLowerCase();
+      const cat = document.getElementById("stock-category").value;
+      const type = document.getElementById("stock-type-filter").value;
+      const filtered = inventoryList.filter(item => {
+        const matchQ = !q || String(item.pcbCode || "").toLowerCase().includes(q) || String(item.name || "").toLowerCase().includes(q) || String(item.bomCode || "").toLowerCase().includes(q);
+        const matchCat = cat === "ALL" || item.category === cat;
+        const matchType = type === "ALL" || (type === "PAID" && !item.isFree) || (type === "FREE" && item.isFree) || (type === "LOW" && Number(item.qty) <= Number(item.minStock));
+        return matchQ && matchCat && matchType;
+      });
+      document.getElementById("inventory-tbody").innerHTML = filtered.map(item => {
+        const isLow = Number(item.qty) <= Number(item.minStock);
+        const total = (Number(item.qty) * Number(item.price)).toLocaleString("en-US", { maximumFractionDigits: 2 });
+        return `<tr class="hover:bg-slate-50 ${isLow ? 'bg-amber-50/50' : ''}">
+          <td class="py-2.5 px-3 text-slate-500 font-mono text-xs">${item.id}</td>
+          <td class="py-2.5 px-3 font-bold text-blue-700 text-xs sm:text-sm">${item.pcbCode}</td>
+          <td class="py-2.5 px-3"><div class="font-medium text-slate-900 text-xs sm:text-sm">${item.name}</div><div class="text-[11px] text-slate-400 font-mono">${item.bomCode || ''}</div></td>
+          <td class="py-2.5 px-3 text-xs text-slate-600 hidden md:table-cell">${item.category}</td>
+          <td class="py-2.5 px-3 text-right font-bold ${isLow ? 'text-red-600' : 'text-slate-900'}">${Number(item.qty).toLocaleString()}</td>
+          <td class="py-2.5 px-3 text-right text-slate-600 hidden sm:table-cell">Rs. ${Number(item.price).toFixed(2)}</td>
+          <td class="py-2.5 px-3 text-right font-semibold text-xs sm:text-sm">Rs. ${total}</td>
+          <td class="py-2.5 px-3 text-center"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${item.isFree ? 'badge-free' : 'badge-paid'}">${item.isFree ? 'FREE' : 'PAID'}</span></td>
+          <td class="py-2.5 px-3 text-center admin-only ${currentRole !== 'admin' ? 'hidden' : ''}">
+            <button onclick="editItem('${item.docId}')" class="text-blue-600 text-xs font-semibold mr-2">Edit</button>
+            <button onclick="deleteItem('${item.docId}')" class="text-red-600 text-xs font-semibold">Del</button>
+          </td>
+        </tr>`;
+      }).join("");
+    };
+
+    // --- TECHNICIAN STOCK ISSUE & RETURN FUNCTIONS ---
+    window.populateIssueDropdown = () => {
+      const q = (document.getElementById("issue-part-search")?.value || "").trim().toLowerCase();
+      const sel = document.getElementById("issue-part-select");
+      if (!sel) return;
+      const matched = inventoryList.filter(i =>
+        !q || String(i.pcbCode || "").toLowerCase().includes(q) || String(i.name || "").toLowerCase().includes(q)
+      );
+      if (matched.length === 0) {
+        sel.innerHTML = `<option value="">❌ ගැළපෙන උපාංගයක් නැත</option>`;
+        return;
+      }
+      sel.innerHTML = matched.map(i => `<option value="${i.docId}">[${i.pcbCode}] ${i.name} (Main Stock: ${i.qty})</option>`).join("");
+    };
+
+    window.addIssuePartToDraft = () => {
+      const docId = document.getElementById("issue-part-select").value;
+      const qty = parseInt(document.getElementById("issue-part-qty").value, 10) || 1;
+      const item = inventoryList.find(i => i.docId === docId);
+      if (!item || !docId) { alert("කරුණාකර වලංගු උපාංගයක් තෝරන්න."); return; }
+
+      const existingIdx = issueDraftParts.findIndex(p => p.docId === docId);
+      const alreadyQty = existingIdx >= 0 ? issueDraftParts[existingIdx].qty : 0;
+      if (alreadyQty + qty > Number(item.qty)) {
+        alert(`Main Stock හි ප්‍රමාණවත් තොග නොමැත! (Available: ${item.qty})`);
+        return;
+      }
+      if (existingIdx >= 0) issueDraftParts[existingIdx].qty += qty;
+      else issueDraftParts.push({ docId: item.docId, itemId: item.id, pcbCode: item.pcbCode, itemName: item.name, qty, unitPrice: Number(item.price) || 0 });
+
+      renderIssueDraftList();
+      document.getElementById("issue-part-qty").value = 1;
+    };
+
+    window.removeIssueDraftPart = (idx) => { issueDraftParts.splice(idx, 1); renderIssueDraftList(); };
+
+    function renderIssueDraftList() {
+      document.getElementById("issue-draft-parts").innerHTML = issueDraftParts.map((p, idx) => `
+        <div class="flex items-center justify-between bg-white px-3 py-1.5 rounded border border-indigo-200 text-xs">
+          <span><b>[${p.pcbCode}]</b> ${p.itemName} × <b>${p.qty}</b></span>
+          <button type="button" onclick="removeIssueDraftPart(${idx})" class="text-red-600 font-bold px-1.5">✕</button>
+        </div>`).join("");
+    }
+
+    window.submitIssueParts = async () => {
+      if (currentRole !== "admin") return;
+      const techEmail = document.getElementById("issue-tech-email").value.trim().toLowerCase();
+      const date = document.getElementById("issue-date").value;
+      const note = document.getElementById("issue-note").value.trim();
+
+      if (!techEmail) { alert("කරුණාකර Technician කෙනෙක් තෝරන්න."); return; }
+      if (issueDraftParts.length === 0) { alert("කරුණාකර නිකුත් කරන උපාංග (Parts) එකතු කරන්න."); return; }
+
+      const btn = document.getElementById("btn-submit-issue");
+      btn.disabled = true; btn.textContent = "Issuing...";
+      try {
+        const batch = writeBatch(db);
+        for (const p of issueDraftParts) {
+          // 1. Deduct from Main Inventory
+          batch.update(doc(db, "inventory", p.docId), { qty: increment(-p.qty) });
+
+          // 2. Add/Increment Technician Stock
+          const safeEmail = techEmail.replace(/[^a-z0-9]/gi, "_");
+          const techStockDocId = `${safeEmail}__${p.docId}`;
+          batch.set(doc(db, "tech_stock", techStockDocId), {
+            techEmail,
+            invDocId: p.docId,
+            itemId: p.itemId,
+            pcbCode: p.pcbCode,
+            itemName: p.itemName,
+            unitPrice: p.unitPrice,
+            qty: increment(p.qty),
+            updatedAt: new Date().toISOString()
+          }, { merge: true });
+
+          // 3. Log Issue Transaction
+          batch.set(doc(collection(db, "tech_issue_logs")), {
+            date,
+            type: "ISSUE",
+            techEmail,
+            pcbCode: p.pcbCode,
+            itemName: p.itemName,
+            qty: p.qty,
+            note,
+            by: currentUser.email,
+            createdAt: new Date().toISOString()
+          });
+        }
+        await batch.commit();
+        issueDraftParts = [];
+        renderIssueDraftList();
+        document.getElementById("issue-note").value = "";
+        alert(`✅ ${techEmail} වෙත උපාංග සාර්ථකව නිකුත් කළ අතර Main Stock එකෙන් අඩු විය!`);
+      } catch (err) {
+        alert("දෝෂයක් ඇති විය: " + err.message);
+      } finally {
+        btn.disabled = false; btn.textContent = "📤 Issue Parts to Technician";
+      }
+    };
+
+    window.returnTechPartToMain = async (techStockDocId) => {
+      if (currentRole !== "admin") return;
+      const item = techStockList.find(t => t.docId === techStockDocId);
+      if (!item) return;
+      const inputQty = prompt(`[${item.pcbCode}] ${item.itemName}\nTechnician (${item.techEmail}) ළඟ ඇති ප්‍රමාණය: ${item.qty}\n\nMain Stock එකට ආපසු ලබා ගන්නා ප්‍රමාණය (Return Qty) ඇතුළත් කරන්න:`, item.qty);
+      if (!inputQty) return;
+      const retQty = parseInt(inputQty, 10);
+      if (isNaN(retQty) || retQty <= 0 || retQty > Number(item.qty)) {
+        alert("වලංගු ප්‍රමාණයක් ඇතුළත් කරන්න!");
+        return;
+      }
+      try {
+        const batch = writeBatch(db);
+        batch.update(doc(db, "inventory", item.invDocId), { qty: increment(retQty) });
+        if (retQty === Number(item.qty)) {
+          batch.delete(doc(db, "tech_stock", techStockDocId));
+        } else {
+          batch.update(doc(db, "tech_stock", techStockDocId), { qty: increment(-retQty) });
+        }
+        batch.set(doc(collection(db, "tech_issue_logs")), {
+          date: new Date().toISOString().slice(0, 10),
+          type: "RETURN",
+          techEmail: item.techEmail,
+          pcbCode: item.pcbCode,
+          itemName: item.itemName,
+          qty: retQty,
+          note: "Returned to Main Stock",
+          by: currentUser.email,
+          createdAt: new Date().toISOString()
+        });
+        await batch.commit();
+        alert(`✅ [${item.pcbCode}] × ${retQty} නැවත Main Stock එකට එකතු විය.`);
+      } catch (err) { alert(err.message); }
+    };
+
+    function renderTechStock() {
+      const tbody = document.getElementById("tech-stock-tbody");
+      if (!tbody) return;
+      let list = techStockList;
+      if (currentRole === "technician") {
+        list = list.filter(t => String(t.techEmail || "").toLowerCase() === currentUser.email.toLowerCase());
+      } else {
+        const filterEmail = document.getElementById("filter-tech-stock-user")?.value || "ALL";
+        if (filterEmail !== "ALL") list = list.filter(t => String(t.techEmail || "").toLowerCase() === filterEmail);
+      }
+
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-400 text-xs">දැනට නිකුත් කළ තොග කිසිවක් නොමැත.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = list.sort((a, b) => String(a.pcbCode).localeCompare(String(b.pcbCode))).map(t => {
+        const val = (Number(t.qty) * Number(t.unitPrice || 0)).toLocaleString("en-US", { maximumFractionDigits: 2 });
+        return `<tr class="hover:bg-slate-50">
+          <td class="py-2.5 px-3 text-xs font-medium text-indigo-700">${t.techEmail}</td>
+          <td class="py-2.5 px-3 font-bold text-blue-700 text-xs sm:text-sm">${t.pcbCode}</td>
+          <td class="py-2.5 px-3 text-xs sm:text-sm">${t.itemName}</td>
+          <td class="py-2.5 px-3 text-right font-bold text-emerald-700">${Number(t.qty).toLocaleString()}</td>
+          <td class="py-2.5 px-3 text-right text-slate-600 hidden sm:table-cell">Rs. ${val}</td>
+          <td class="py-2.5 px-3 text-center admin-only ${currentRole !== 'admin' ? 'hidden' : ''}">
+            <button onclick="returnTechPartToMain('${t.docId}')" class="px-2.5 py-1 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded text-xs font-semibold">↩ Return</button>
+          </td>
+        </tr>`;
+      }).join("");
+    }
+
+    function renderIssueLogs() {
+      const tbody = document.getElementById("issue-history-tbody");
+      if (!tbody) return;
+      let logs = issueLogsList;
+      if (currentRole === "technician") {
+        logs = logs.filter(l => String(l.techEmail || "").toLowerCase() === currentUser.email.toLowerCase());
+      }
+      tbody.innerHTML = logs.slice(0, 50).map(l => `
+        <tr class="hover:bg-slate-50">
+          <td class="py-2 px-3 font-mono text-xs whitespace-nowrap">${l.date}</td>
+          <td class="py-2 px-3 text-xs font-medium">${l.techEmail}</td>
+          <td class="py-2 px-3 text-xs"><b>[${l.pcbCode}]</b> ${l.itemName}</td>
+          <td class="py-2 px-3 text-right font-bold ${l.type === 'RETURN' ? 'text-amber-700' : 'text-indigo-700'}">
+            ${l.type === 'RETURN' ? `-${l.qty} (Return)` : `+${l.qty} (Issued)`}
+          </td>
+          <td class="py-2 px-3 text-xs text-slate-500">${l.note || '-'} <span class="text-[10px]">(${l.by || ''})</span></td>
+        </tr>`).join("");
+    }
+
+    // --- REPAIR PARTS SELECTOR (SEPARATE FOR TECHNICIAN vs ADMIN) ---
+    window.populatePartDropdown = () => {
+      const searchInput = document.getElementById("rep-part-search");
+      const clearBtn = document.getElementById("btn-clear-part-search");
+      const countLabel = document.getElementById("part-match-count");
+      const sel = document.getElementById("rep-part-select");
+
+      const currentSelectedVal = sel.value;
+      const q = (searchInput ? searchInput.value : "").trim().toLowerCase();
+      if (clearBtn) clearBtn.classList.toggle("hidden", !q);
+
+      // If Technician -> Load ONLY their issued stock!
+      // If Admin -> Load Main Warehouse stock!
+      const sourcePool = (currentRole === "technician")
+        ? techStockList
+            .filter(t => String(t.techEmail || "").toLowerCase() === currentUser.email.toLowerCase() && Number(t.qty) > 0)
+            .map(t => ({
+              docId: t.docId,         // tech_stock document ID
+              invDocId: t.invDocId,   // main inventory document ID
+              id: t.itemId,
+              pcbCode: t.pcbCode,
+              name: t.itemName,
+              qty: Number(t.qty),
+              price: Number(t.unitPrice) || 0,
+              isTechStock: true
+            }))
+        : inventoryList.map(i => ({ ...i, invDocId: i.docId, isTechStock: false }));
+
+      const matched = sourcePool.filter(i =>
+        !q ||
+        String(i.pcbCode || "").toLowerCase().includes(q) ||
+        String(i.name || "").toLowerCase().includes(q) ||
+        String(i.bomCode || "").toLowerCase().includes(q)
+      );
+
+      if (countLabel) {
+        if (currentRole === "technician" && sourcePool.length === 0) {
+          countLabel.textContent = "⚠️ ඔබට තවම Parts Issue කර නොමැත";
+        } else {
+          countLabel.textContent = q
+            ? `ගැළපෙන උපාංග ${matched.length} ක් හමුවිය`
+            : `${currentRole === "technician" ? "ඔබ ළඟ ඇති උපාංග" : "මුළු උපාංග"} ${sourcePool.length} කි`;
+        }
+      }
+
+      if (matched.length === 0) {
+        sel.innerHTML = currentRole === "technician" && sourcePool.length === 0
+          ? `<option value="">❌ ඔබ ළඟ Parts නොමැත (Admin හරහා Issue කරගන්න)</option>`
+          : `<option value="">❌ "${searchInput.value}" සඳහා උපාංගයක් හමු නොවීය</option>`;
+        return;
+      }
+
+      sel.innerHTML = matched.map(i =>
+        `<option value="${i.docId}">[${i.pcbCode}] ${i.name} (${i.isTechStock ? 'My Stock' : 'Stock'}: ${i.qty})</option>`
+      ).join("");
+
+      if (currentSelectedVal && matched.some(i => i.docId === currentSelectedVal)) {
+        sel.value = currentSelectedVal;
+      }
+    };
+
+    window.clearPartSearch = () => {
+      document.getElementById("rep-part-search").value = "";
+      populatePartDropdown();
+      document.getElementById("rep-part-search").focus();
+    };
+
+    function populateTechFilterDropdown() {
+      const sel = document.getElementById("repair-tech-filter");
+      const techs = [...new Set(repairsList.map(r => r.addedBy).filter(Boolean))];
+      sel.innerHTML = `<option value="ALL">All Technicians</option>` + techs.map(t => `<option value="${t}">${t}</option>`).join("");
+    }
+
+    window.onWarrantyChange = () => {
+      const warranty = document.getElementById("rep-warranty").value;
+      const voidBox = document.getElementById("rep-void-reason-box");
+      const submitBtn = document.getElementById("btn-submit-repair");
+      const isVoid = warranty === "WARRANTY_VOID";
+
+      voidBox.classList.toggle("hidden", !isVoid);
+      if (isVoid) {
+        submitBtn.classList.remove("bg-emerald-600", "hover:bg-emerald-700");
+        submitBtn.classList.add("bg-red-600", "hover:bg-red-700");
+        submitBtn.textContent = draftParts.length > 0
+          ? "🚫 Save Warranty Void (Paid Repair) & Deduct Stock"
+          : "🚫 Log Warranty Void (BER - No Parts)";
+      } else {
+        submitBtn.classList.remove("bg-red-600", "hover:bg-red-700");
+        submitBtn.classList.add("bg-emerald-600", "hover:bg-emerald-700");
+        submitBtn.textContent = "✅ Save Repair & Deduct Stock";
+      }
+    };
+
+    window.checkDuplicateSerial = () => {
+      const serial = document.getElementById("rep-serial").value.trim();
+      const warnBox = document.getElementById("repeat-serial-warning");
+      if (!serial) { warnBox.classList.add("hidden"); return; }
+
+      const prev = repairsList.filter(r => String(r.serialNumber || "").trim() === serial);
+      if (prev.length === 0) {
+        warnBox.classList.add("hidden");
+        return;
+      }
+
+      const voidRecord = prev.find(r => r.warranty === "WARRANTY_VOID");
+      if (voidRecord) {
+        warnBox.className = "mb-3 p-3 rounded-lg border text-xs font-bold bg-red-100 border-red-400 text-red-900";
+        warnBox.textContent = `⚠️ අවවාදයයි: මෙම STB එකේ (${serial}) Warranty අවලංගු කර ඇත (Reason: ${voidRecord.voidReason || 'Damage'} | Date: ${voidRecord.date})`;
+        warnBox.classList.remove("hidden");
+      } else {
+        warnBox.className = "mb-3 p-3 rounded-lg border text-xs font-semibold bg-amber-50 border-amber-300 text-amber-800";
+        warnBox.textContent = `⚠️ මෙම Serial Number එක (${serial}) මීට පෙර ${prev.length} වතාවක් Repair කර ඇත (අවසන් දිනය: ${prev[0].date}).`;
+        warnBox.classList.remove("hidden");
+      }
+    };
+
+    function renderDraftList() {
+      document.getElementById("rep-draft-parts").innerHTML = draftParts.map((p, idx) => `
+        <div class="flex items-center justify-between bg-white px-3 py-1.5 rounded border border-slate-300 text-xs">
+          <span><b>[${p.pcbCode}]</b> ${p.itemName} × <b>${p.qty}</b> (Rs. ${(p.qty * p.unitPrice).toFixed(2)})</span>
+          <button type="button" onclick="removeDraftPart(${idx})" class="text-red-600 hover:text-red-800 font-bold px-1.5">✕</button>
+        </div>`).join("");
+      onWarrantyChange();
+    }
+
+    window.addPartToDraft = () => {
+      const docId = document.getElementById("rep-part-select").value;
+      const qty = parseInt(document.getElementById("rep-part-qty").value, 10) || 1;
+      if (!docId) { alert("කරුණාකර වලංගු උපාංගයක් තෝරන්න."); return; }
+
+      let item = null;
+      if (currentRole === "technician") {
+        const t = techStockList.find(x => x.docId === docId);
+        if (t) item = { docId: t.docId, itemId: t.itemId, pcbCode: t.pcbCode, name: t.itemName, qty: Number(t.qty), price: Number(t.unitPrice) || 0, isTechStock: true };
+      } else {
+        const inv = inventoryList.find(x => x.docId === docId);
+        if (inv) item = { docId: inv.docId, itemId: inv.id, pcbCode: inv.pcbCode, name: inv.name, qty: Number(inv.qty), price: Number(inv.price) || 0, isTechStock: false };
+      }
+
+      if (!item) { alert("කරුණාකර වලංගු උපාංගයක් තෝරන්න."); return; }
+
+      const existingIdx = draftParts.findIndex(p => p.docId === docId);
+      const alreadyAddedQty = existingIdx >= 0 ? draftParts[existingIdx].qty : 0;
+
+      if (alreadyAddedQty + qty > item.qty) {
+        alert(`ප්‍රමාණවත් තොග නොමැත! (${item.isTechStock ? 'My Stock' : 'Main Stock'}: ${item.qty}, දැනට තෝරා ඇති: ${alreadyAddedQty})`);
+        return;
+      }
+
+      if (existingIdx >= 0) {
+        draftParts[existingIdx].qty += qty;
+      } else {
+        draftParts.push({
+          docId: item.docId,
+          isTechStock: item.isTechStock,
+          itemId: item.itemId,
+          pcbCode: item.pcbCode,
+          itemName: item.name,
+          qty,
+          unitPrice: item.price
+        });
+      }
+
+      renderDraftList();
+      document.getElementById("rep-part-qty").value = 1;
+    };
+
+    window.removeDraftPart = (idx) => { draftParts.splice(idx, 1); renderDraftList(); };
+
+    window.submitRepair = async () => {
+      const serial = document.getElementById("rep-serial").value.trim();
+      const date = document.getElementById("rep-date").value;
+      const warranty = document.getElementById("rep-warranty").value;
+      const voidReason = warranty === "WARRANTY_VOID" ? document.getElementById("rep-void-reason").value : "";
+      const note = document.getElementById("rep-note").value.trim();
+
+      if (!serial) { alert("කරුණාකර STB Serial Number එක ඇතුළත් කරන්න."); return; }
+      if (warranty !== "WARRANTY_VOID" && draftParts.length === 0) {
+        alert("කරුණාකර මාරු කළ උපාංග (Parts) අවම වශයෙන් 1ක් තෝරන්න.");
+        return;
+      }
+      if (warranty === "WARRANTY_VOID" && draftParts.length === 0) {
+        if (!confirm(`මාරු කළ උපාංග (Parts) නොමැතිව මෙම STB එක (${serial}) "${voidReason}" හේතුව මත 'Warranty Void (BER)' ලෙස සටහන් කරන්නද?`)) {
+          return;
+        }
+      }
+
+      const btn = document.getElementById("btn-submit-repair");
+      btn.disabled = true; btn.textContent = "Saving...";
+      try {
+        const batch = writeBatch(db);
+        batch.set(doc(collection(db, "repairs")), {
+          date,
+          serialNumber: serial,
+          warranty,
+          voidReason,
+          parts: draftParts.map(({ docId, isTechStock, ...rest }) => rest),
+          deductedFrom: currentRole === "technician" ? "TECH_STOCK" : "MAIN_STOCK",
+          note,
+          addedBy: currentUser.email,
+          createdAt: new Date().toISOString()
+        });
+
+        for (const p of draftParts) {
+          if (p.isTechStock) {
+            // Deduct from Technician's own stock!
+            batch.update(doc(db, "tech_stock", p.docId), { qty: increment(-p.qty) });
+          } else {
+            // Admin deducts from Main Warehouse stock
+            batch.update(doc(db, "inventory", p.docId), { qty: increment(-p.qty) });
+          }
+        }
+
+        await batch.commit();
+        const hadParts = draftParts.length > 0;
+        draftParts = [];
+        renderDraftList();
+        document.getElementById("rep-serial").value = "";
+        document.getElementById("rep-note").value = "";
+        document.getElementById("rep-part-search").value = "";
+        populatePartDropdown();
+        document.getElementById("repeat-serial-warning").classList.add("hidden");
+
+        const stockMsg = currentRole === "technician" ? "ඔබගේ Technician Stock එකෙන් අඩු විය!" : "Main Stock එකෙන් අඩු විය!";
+        if (warranty === "WARRANTY_VOID") {
+          alert(hadParts
+            ? `🚫 Warranty Void (Paid Repair) වාර්තාව සුරැකුණු අතර ${stockMsg}`
+            : "🚫 STB Warranty Void (BER - No Parts) වාර්තාව සාර්ථකව සුරැකුණි!");
+        } else {
+          alert(`✅ Repair වාර්තාව සුරැකුණු අතර ${stockMsg}`);
+        }
+      } catch (err) { alert(err.message); }
+      finally { btn.disabled = false; onWarrantyChange(); }
+    };
+
+    window.renderRepairs = () => {
+      const q = document.getElementById("repair-search").value.toLowerCase();
+      const monthFilter = document.getElementById("repair-month-filter").value;
+      const techFilter = document.getElementById("repair-tech-filter").value;
+      const warrantyFilter = document.getElementById("repair-warranty-filter").value;
+
+      currentFilteredRepairs = repairsList.filter(r => {
+        const matchQ = !q ||
+          String(r.serialNumber || "").toLowerCase().includes(q) ||
+          String(r.note || "").toLowerCase().includes(q) ||
+          String(r.voidReason || "").toLowerCase().includes(q) ||
+          (r.parts || []).some(p => String(p.pcbCode || "").toLowerCase().includes(q));
+        const matchMonth = !monthFilter || String(r.date || "").startsWith(monthFilter);
+        const matchTech = techFilter === "ALL" || r.addedBy === techFilter;
+        const matchWarranty = warrantyFilter === "ALL" || r.warranty === warrantyFilter;
+        return matchQ && matchMonth && matchTech && matchWarranty;
+      });
+
+      let withW = 0, noW = 0, voidW = 0, totalCost = 0;
+      const partUsageMap = {};
+      currentFilteredRepairs.forEach(r => {
+        if (r.warranty === "WITH_WARRANTY") withW++;
+        else if (r.warranty === "WARRANTY_VOID") voidW++;
+        else noW++;
+
+        (r.parts || []).forEach(p => {
+          totalCost += (Number(p.qty) || 0) * (Number(p.unitPrice) || 0);
+          partUsageMap[p.pcbCode] = (partUsageMap[p.pcbCode] || 0) + (Number(p.qty) || 0);
+        });
+      });
+
+      const statsHtml = `
+        <div class="bg-slate-50 p-2 rounded border"><b>Total:</b> ${currentFilteredRepairs.length}</div>
+        <div class="bg-emerald-50 text-emerald-800 p-2 rounded border"><b>Warranty:</b> ${withW}</div>
+        <div class="bg-amber-50 text-amber-800 p-2 rounded border"><b>Paid:</b> ${noW}</div>
+        <div class="bg-red-50 text-red-800 p-2 rounded border border-red-200"><b>Void:</b> ${voidW}</div>
+        <div class="bg-blue-50 text-blue-900 p-2 rounded border col-span-2 sm:col-span-1"><b>Cost:</b> Rs. ${totalCost.toLocaleString()}</div>`;
+      document.getElementById("filtered-repair-stats").innerHTML = statsHtml;
+      document.getElementById("print-summary-strip").innerHTML = statsHtml;
+
+      document.getElementById("parts-consumption-summary").innerHTML = Object.entries(partUsageMap).sort((a, b) => b[1] - a[1])
+        .map(([code, qty]) => `<span class="bg-slate-100 border px-2.5 py-1 rounded-full"><b>${code}:</b> ${qty}</span>`).join("");
+
+      document.getElementById("repairs-tbody").innerHTML = currentFilteredRepairs.map(r => {
+        const partsHtml = (r.parts && r.parts.length > 0)
+          ? r.parts.map(p => `<span class="inline-block bg-slate-100 border rounded px-1.5 py-0.5 text-xs mr-1"><b>${p.pcbCode}</b> ×${p.qty}</span>`).join("")
+          : `<span class="text-xs italic text-slate-400">No parts replaced (BER)</span>`;
+        const cost = (r.parts || []).reduce((s, p) => s + (p.qty * p.unitPrice), 0);
+
+        let wBadge = "";
+        if (r.warranty === "WITH_WARRANTY") {
+          wBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">WARRANTY</span>`;
+        } else if (r.warranty === "WARRANTY_VOID") {
+          wBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-800 border border-red-300">🚫 VOID</span>
+                    <div class="text-[10px] text-red-600 font-semibold mt-0.5">${r.voidReason || 'Damage'}</div>`;
+        } else {
+          wBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">PAID</span>`;
+        }
+
+        return `<tr class="hover:bg-slate-50 ${r.warranty === 'WARRANTY_VOID' ? 'bg-red-50/30' : ''}">
+          <td class="py-2.5 px-3 text-xs font-mono whitespace-nowrap">${r.date}</td>
+          <td class="py-2.5 px-3 font-bold font-mono text-xs sm:text-sm">${r.serialNumber}</td>
+          <td class="py-2.5 px-3">${wBadge}</td>
+          <td class="py-2.5 px-3">${partsHtml}</td>
+          <td class="py-2.5 px-3 text-xs"><div>${r.note || '-'}</div><div class="text-[10px] text-slate-400">${r.addedBy || ''}</div></td>
+          <td class="py-2.5 px-3 text-right font-semibold text-xs sm:text-sm">Rs. ${cost.toFixed(0)}</td>
+          <td class="py-2.5 px-3 text-center admin-only no-print ${currentRole !== 'admin' ? 'hidden' : ''}">
+            <button onclick="deleteRepair('${r.docId}')" class="text-red-600 text-xs font-semibold">Del</button>
+          </td></tr>`;
+      }).join("");
+    };
+
+    window.printRepairReport = () => {
+      document.getElementById("print-generated-date").textContent = new Date().toLocaleString();
+      document.getElementById("print-generated-by").textContent = currentUser.email;
+      window.print();
+    };
+
+    window.switchTab = (tab) => {
+      ["stock", "techstock", "repairs", "admin"].forEach(t => {
+        const view = document.getElementById(`view-${t}`);
+        if (view) view.classList.toggle("hidden", t !== tab);
+        const btn = document.getElementById(`tab-${t}`);
+        if (btn) { btn.classList.toggle("bg-blue-600", t === tab); btn.classList.toggle("text-white", t === tab); btn.classList.toggle("text-slate-300", t !== tab); }
+        const mBtn = document.getElementById(`mob-tab-${t}`);
+        if (mBtn) { mBtn.classList.toggle("text-blue-400", t === tab); mBtn.classList.toggle("font-bold", t === tab); mBtn.classList.toggle("text-slate-400", t !== tab); }
+      });
+    };
+
+    window.openItemModal = () => { document.getElementById("edit-item-id").value = ""; document.getElementById("inp-id").value = inventoryList.length + 1; document.getElementById("item-modal").classList.remove("hidden"); };
+    window.editItem = (docId) => {
+      const item = inventoryList.find(i => i.docId === docId);
+      if (!item) return;
+      document.getElementById("edit-item-id").value = docId; document.getElementById("inp-id").value = item.id;
+      document.getElementById("inp-pcb").value = item.pcbCode; document.getElementById("inp-name").value = item.name;
+      document.getElementById("inp-bom").value = item.bomCode || ""; document.getElementById("inp-cat").value = item.category;
+      document.getElementById("inp-qty").value = item.qty; document.getElementById("inp-price").value = item.price;
+      document.getElementById("inp-min").value = item.minStock || 20; document.getElementById("inp-free").checked = !!item.isFree;
+      document.getElementById("item-modal").classList.remove("hidden");
+    };
+    window.closeItemModal = () => document.getElementById("item-modal").classList.add("hidden");
+    window.saveItem = async () => {
+      if (currentRole !== "admin") return;
+      const docId = document.getElementById("edit-item-id").value;
+      const payload = {
+        id: Number(document.getElementById("inp-id").value), pcbCode: document.getElementById("inp-pcb").value.trim(),
+        name: document.getElementById("inp-name").value.trim(), bomCode: document.getElementById("inp-bom").value.trim(),
+        category: document.getElementById("inp-cat").value, qty: Number(document.getElementById("inp-qty").value),
+        price: Number(document.getElementById("inp-price").value), minStock: Number(document.getElementById("inp-min").value),
+        isFree: document.getElementById("inp-free").checked
+      };
+      await setDoc(docId ? doc(db, "inventory", docId) : doc(db, "inventory", `item_${payload.id}`), payload, { merge: true });
+      closeItemModal();
+    };
+    window.deleteItem = async (docId) => { if (currentRole === "admin" && confirm("Delete?")) await deleteDoc(doc(db, "inventory", docId)); };
+    window.deleteRepair = async (docId) => { if (currentRole === "admin" && confirm("Delete?")) await deleteDoc(doc(db, "repairs", docId)); };
+    window.saveUserRole = async () => {
+      const email = document.getElementById("role-email-input").value.trim().toLowerCase();
+      if (currentRole === "admin" && email) {
+        await setDoc(doc(db, "users", email), { role: document.getElementById("role-select-input").value });
+        document.getElementById("role-email-input").value = "";
+      }
+    };
+    window.deleteUserRole = async (email) => { if (currentRole === "admin") await deleteDoc(doc(db, "users", email)); };
+    window.toggleSeedLock = () => { document.getElementById("btn-seed").disabled = !document.getElementById("unlock-seed-chk").checked; };
+    window.seedInitialData = async () => {
+      if (currentRole !== "admin" || !confirm("Reset all 50 items to initial stock?")) return;
+      const batch = writeBatch(db);
+      INITIAL_DATA.inventory.forEach(item => batch.set(doc(db, "inventory", `item_${item.id}`), item));
+      INITIAL_DATA.repairs.forEach(rep => batch.set(doc(db, "repairs", `rep_${rep.id}`), rep));
+      await batch.commit();
+      document.getElementById("unlock-seed-chk").checked = false;
+      toggleSeedLock();
+      alert("✅ Database Reset සාර්ථකයි!");
+    };
+    window.exportCSV = () => {
+      const csv = ["ID,PCB,Name,Qty,Price,Type", ...inventoryList.map(i => `${i.id},"${i.pcbCode}","${i.name}",${i.qty},${i.price},${i.isFree ? 'FREE' : 'PAID'}`)].join("\n");
+      const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); a.download = "Freesat_Stock.csv"; a.click();
+    };
+    window.exportRepairsCSV = () => {
+      const csv = ["Date,Serial,Warranty,VoidReason,Parts,Note", ...currentFilteredRepairs.map(r => {
+        const partsStr = (r.parts || []).map(p => `${p.pcbCode} x${p.qty}`).join("; ");
+        return `${r.date},"${r.serialNumber}",${r.warranty},"${r.voidReason || ''}","${partsStr}","${r.note || ''}"`;
+      })].join("\n");
+      const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); a.download = "Freesat_Repairs.csv"; a.click();
+    };
+    window.exportJSON = () => {
+      const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify({ inventory: inventoryList, repairs: repairsList, techStock: techStockList, issueLogs: issueLogsList }, null, 2)], { type: "application/json" })); a.download = `Freesat_Backup_${new Date().toISOString().slice(0,10)}.json`; a.click();
+    };
+
+    window.handleRestoreJSON = async (event) => {
+      if (currentRole !== "admin") return;
+      const file = event.target.files[0];
+      if (!file) return;
+
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+
+        if (!data || !Array.isArray(data.inventory) || !Array.isArray(data.repairs)) {
+          alert("❌ වැරදි Backup ගොනුවකි! කරුණාකර 'Freesat_Backup.json' ගොනුවක් තෝරන්න.");
+          event.target.value = "";
+          return;
+        }
+
+        const ok = confirm(
+          `මෙම Backup ගොනුවේ:\n` +
+          `• Inventory Items: ${data.inventory.length}\n` +
+          `• Repair Records: ${data.repairs.length}\n\n` +
+          `දැනට Cloud Database එකේ ඇති දත්ත වෙනුවට මෙම Backup දත්ත Restore කරන්නද?`
+        );
+        if (!ok) {
+          event.target.value = "";
+          return;
+        }
+
+        const btn = document.getElementById("btn-restore-json");
+        btn.disabled = true;
+        btn.textContent = "⏳ Restoring Data...";
+
+        const operations = [];
+        data.inventory.forEach((item, idx) => {
+          const { docId, ...cleanItem } = item;
+          const targetId = docId || `item_${cleanItem.id || idx + 1}`;
+          operations.push({ ref: doc(db, "inventory", String(targetId)), payload: cleanItem });
+        });
+
+        data.repairs.forEach((rep, idx) => {
+          const { docId, ...cleanRep } = rep;
+          const targetId = docId || `rep_${cleanRep.id || Date.now() + "_" + idx}`;
+          operations.push({ ref: doc(db, "repairs", String(targetId)), payload: cleanRep });
+        });
+
+        if (Array.isArray(data.techStock)) {
+          data.techStock.forEach((ts, idx) => {
+            const { docId, ...cleanTs } = ts;
+            const targetId = docId || `ts_${Date.now()}_${idx}`;
+            operations.push({ ref: doc(db, "tech_stock", String(targetId)), payload: cleanTs });
+          });
+        }
+
+        const CHUNK_SIZE = 400;
+        for (let i = 0; i < operations.length; i += CHUNK_SIZE) {
+          const batch = writeBatch(db);
+          operations.slice(i, i + CHUNK_SIZE).forEach(op => batch.set(op.ref, op.payload));
+          await batch.commit();
+        }
+
+        alert(`✅ සාර්ථකයි! අයිතම ${data.inventory.length} ක් සහ Repair වාර්තා ${data.repairs.length} ක් Cloud Database එකට Restore විය.`);
+      } catch (err) {
+        alert("❌ Restore කිරීමේදී දෝෂයක් ඇති විය: " + err.message);
+      } finally {
+        const btn = document.getElementById("btn-restore-json");
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = "📤 Restore JSON Backup";
+        }
+        event.target.value = "";
+      }
+    };
+  </script>
+</body>
+</html>
