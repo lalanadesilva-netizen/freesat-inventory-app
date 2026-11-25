@@ -34,7 +34,7 @@
       .no-print, header, #mobile-bottom-nav, #login-screen, #view-stock, #view-techstock, #view-admin, #repair-form-card, #repair-filter-bar {
         display: none !important;
       }
-      #app-screen, #view-repairs, #print-report-header { display: block !important; }
+      #app-screen, #view-repairs, #admin-reports-wrapper, #print-report-header { display: block !important; }
       .print-shadow-none { box-shadow: none !important; border: 1px solid #cbd5e1 !important; }
     }
   </style>
@@ -115,10 +115,10 @@
             📦 Main Stock (<span id="count-items">0</span>)
           </button>
           <button onclick="switchTab('techstock')" id="tab-techstock" class="tab-btn tech-or-admin hidden px-4 py-2 rounded-lg font-medium text-slate-300 hover:bg-slate-700">
-            🎒 Tech Stock (<span id="count-tech-items">0</span>)
+            🎒 <span id="tab-techstock-label">Tech Stock</span> (<span id="count-tech-items">0</span>)
           </button>
           <button onclick="switchTab('repairs')" id="tab-repairs" class="tab-btn px-4 py-2 rounded-lg font-medium text-slate-300 hover:bg-slate-700">
-            🔧 STB Repairs & Reports (<span id="count-repairs">0</span>)
+            🔧 <span id="tab-repairs-label">STB Repairs & Reports</span> (<span id="count-repairs">0</span>)
           </button>
           <button onclick="switchTab('admin')" id="tab-admin" class="tab-btn admin-only hidden px-4 py-2 rounded-lg font-medium text-slate-300 hover:bg-slate-700">
             ⚙️ Admin & User Roles
@@ -133,7 +133,7 @@
         <span class="text-lg">📦</span><span>Stock</span>
       </button>
       <button onclick="switchTab('techstock')" id="mob-tab-techstock" class="tech-or-admin hidden flex flex-col items-center py-1 px-2 text-slate-400">
-        <span class="text-lg">🎒</span><span>Tech Stock</span>
+        <span class="text-lg">🎒</span><span id="mob-techstock-label">Tech Stock</span>
       </button>
       <button onclick="switchTab('repairs')" id="mob-tab-repairs" class="flex flex-col items-center py-1 px-2 text-slate-400">
         <span class="text-lg">🔧</span><span>Repairs</span>
@@ -144,17 +144,17 @@
     </nav>
 
     <main class="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
-      <!-- Summary Cards -->
+      <!-- Summary Cards (Monetary values hidden for Technicians) -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-5 no-print">
         <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200">
           <p class="text-[11px] text-slate-500 font-medium uppercase">Paid Stock</p>
-          <p id="stat-paid-val" class="text-base sm:text-xl font-bold text-slate-900 mt-0.5">Rs. 0</p>
-          <p id="stat-paid-qty" class="text-[11px] text-slate-500 mt-0.5">0 pcs</p>
+          <p id="stat-paid-val" class="non-tech-only text-base sm:text-xl font-bold text-slate-900 mt-0.5">Rs. 0</p>
+          <p id="stat-paid-qty" class="text-sm sm:text-base font-bold text-slate-700 mt-0.5">0 pcs</p>
         </div>
         <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200">
           <p class="text-[11px] text-slate-500 font-medium uppercase">Free / Sample</p>
-          <p id="stat-free-val" class="text-base sm:text-xl font-bold text-emerald-600 mt-0.5">Rs. 0</p>
-          <p id="stat-free-qty" class="text-[11px] text-slate-500 mt-0.5">0 pcs</p>
+          <p id="stat-free-val" class="non-tech-only text-base sm:text-xl font-bold text-emerald-600 mt-0.5">Rs. 0</p>
+          <p id="stat-free-qty" class="text-sm sm:text-base font-bold text-emerald-700 mt-0.5">0 pcs</p>
         </div>
         <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200">
           <p class="text-[11px] text-slate-500 font-medium uppercase">Low Stock</p>
@@ -164,7 +164,7 @@
         <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200">
           <p class="text-[11px] text-slate-500 font-medium uppercase">STB Repairs</p>
           <p id="stat-repairs" class="text-base sm:text-xl font-bold text-blue-600 mt-0.5">0 Units</p>
-          <p id="stat-repair-cost" class="text-[11px] text-slate-500 mt-0.5">Rs. 0</p>
+          <p id="stat-repair-cost" class="non-tech-only text-[11px] text-slate-500 mt-0.5">Rs. 0</p>
         </div>
       </div>
 
@@ -190,7 +190,7 @@
             </select>
           </div>
           <div class="flex items-center gap-2">
-            <button onclick="exportCSV()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-medium rounded-lg border border-slate-300">📥 CSV</button>
+            <button onclick="exportCSV()" class="non-tech-only px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-medium rounded-lg border border-slate-300">📥 CSV</button>
             <button onclick="openItemModal()" class="admin-only hidden px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold rounded-lg shadow">+ Add Item</button>
           </div>
         </div>
@@ -205,8 +205,8 @@
                   <th class="py-3 px-3">Component Name</th>
                   <th class="py-3 px-3 hidden md:table-cell">Category</th>
                   <th class="py-3 px-3 text-right">Qty</th>
-                  <th class="py-3 px-3 text-right hidden sm:table-cell">Price</th>
-                  <th class="py-3 px-3 text-right">Total</th>
+                  <th class="py-3 px-3 text-right hidden sm:table-cell non-tech-only">Price</th>
+                  <th class="py-3 px-3 text-right non-tech-only">Total</th>
                   <th class="py-3 px-3 text-center">Type</th>
                   <th class="py-3 px-3 text-center admin-only hidden">Actions</th>
                 </tr>
@@ -283,7 +283,7 @@
                   <th class="py-3 px-3">PCB Code</th>
                   <th class="py-3 px-3">Component Name</th>
                   <th class="py-3 px-3 text-right">Remaining Qty</th>
-                  <th class="py-3 px-3 text-right hidden sm:table-cell">Value (Rs.)</th>
+                  <th class="py-3 px-3 text-right hidden sm:table-cell non-tech-only">Value (Rs.)</th>
                   <th class="py-3 px-3 text-center admin-only hidden">Return to Main</th>
                 </tr>
               </thead>
@@ -318,7 +318,7 @@
           <div class="flex justify-between items-start">
             <div>
               <h1 class="text-2xl font-bold text-slate-900">FREESAT STB SERVICE & REPAIR REPORT</h1>
-              <p id="print-report-subtitle" class="text-sm text-slate-600 mt-1">All Repair Records</p>
+              <p id="print-report-subtitle" class="text-sm font-semibold text-blue-800 mt-1">Login Wise Report: All Users</p>
             </div>
             <div class="text-right text-xs text-slate-500">
               <p id="print-generated-date"></p>
@@ -413,56 +413,62 @@
           </div>
         </div>
 
-        <!-- Report Filters -->
-        <div id="repair-filter-bar" class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
-          <div class="flex flex-wrap items-center justify-between gap-2">
-            <h3 class="font-bold text-slate-800 text-sm sm:text-base">📋 STB Repair වාර්තා සහ Reports</h3>
-            <div class="flex gap-2">
-              <button onclick="exportRepairsCSV()" class="px-3 py-1.5 bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg border">📥 CSV</button>
-              <button onclick="printRepairReport()" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg shadow">🖨️ PDF / Print</button>
+        <!-- REPORTS SECTION (COMPLETELY HIDDEN FOR TECHNICIANS; VISIBLE TO ADMIN & VIEWER) -->
+        <div id="admin-reports-wrapper" class="non-tech-only space-y-5">
+          <!-- Report Filters -->
+          <div id="repair-filter-bar" class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h3 class="font-bold text-slate-800 text-sm sm:text-base">📋 STB Repair වාර්තා සහ Reports (Login Wise)</h3>
+                <p class="text-[11px] text-slate-500">Login / Technician අනුව වෙන වෙනම වාර්තා පෙරා (Filter) CSV හෝ PDF ලබා ගන්න.</p>
+              </div>
+              <div class="flex gap-2">
+                <button onclick="exportRepairsCSV()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg border">📥 CSV</button>
+                <button onclick="printRepairReport()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow">🖨️ PDF / Print</button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+              <input type="text" id="repair-search" oninput="renderRepairs()" placeholder="🔍 Serial No, Part හෝ Void..." class="px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+              <input type="month" id="repair-month-filter" onchange="renderRepairs()" class="px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white" />
+              <select id="repair-tech-filter" onchange="renderRepairs()" class="px-3 py-2 border-2 border-blue-400 rounded-lg text-sm bg-blue-50/40 font-semibold text-slate-800">
+                <option value="ALL">👤 Login: All Users</option>
+              </select>
+              <select id="repair-warranty-filter" onchange="renderRepairs()" class="px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white">
+                <option value="ALL">Warranty: All</option>
+                <option value="WITH_WARRANTY">With Warranty</option>
+                <option value="NO_WARRANTY">Out of Warranty (Paid)</option>
+                <option value="WARRANTY_VOID">Warranty Void Only</option>
+              </select>
+            </div>
+
+            <div id="filtered-repair-stats" class="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-2 border-t border-slate-100 text-xs"></div>
+          </div>
+
+          <!-- Repair Table -->
+          <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden print-shadow-none">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse text-sm">
+                <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-xs">
+                  <tr>
+                    <th class="py-3 px-3">Date</th>
+                    <th class="py-3 px-3">Serial No</th>
+                    <th class="py-3 px-3">Warranty Status</th>
+                    <th class="py-3 px-3">Replaced Parts</th>
+                    <th class="py-3 px-3">Note / Login User</th>
+                    <th class="py-3 px-3 text-right">Cost</th>
+                    <th class="py-3 px-3 text-center admin-only hidden no-print">Admin</th>
+                  </tr>
+                </thead>
+                <tbody id="repairs-tbody" class="divide-y divide-slate-100"></tbody>
+              </table>
             </div>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-            <input type="text" id="repair-search" oninput="renderRepairs()" placeholder="🔍 Serial No, Part හෝ Void..." class="px-3 py-2 border border-slate-300 rounded-lg text-sm" />
-            <input type="month" id="repair-month-filter" onchange="renderRepairs()" class="px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white" />
-            <select id="repair-tech-filter" onchange="renderRepairs()" class="px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white">
-              <option value="ALL">All Technicians</option>
-            </select>
-            <select id="repair-warranty-filter" onchange="renderRepairs()" class="px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white">
-              <option value="ALL">Warranty: All</option>
-              <option value="WITH_WARRANTY">With Warranty</option>
-              <option value="NO_WARRANTY">Out of Warranty (Paid)</option>
-              <option value="WARRANTY_VOID">Warranty Void Only</option>
-            </select>
+          <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 print-shadow-none">
+            <h4 class="text-xs font-bold uppercase text-slate-600 mb-2">📊 Parts Consumption Summary (Selected Login / Filter)</h4>
+            <div id="parts-consumption-summary" class="flex flex-wrap gap-2 text-xs"></div>
           </div>
-
-          <div id="filtered-repair-stats" class="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-2 border-t border-slate-100 text-xs"></div>
-        </div>
-
-        <!-- Repair Table -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden print-shadow-none">
-          <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-sm">
-              <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-xs">
-                <tr>
-                  <th class="py-3 px-3">Date</th>
-                  <th class="py-3 px-3">Serial No</th>
-                  <th class="py-3 px-3">Warranty Status</th>
-                  <th class="py-3 px-3">Replaced Parts</th>
-                  <th class="py-3 px-3">Note / Tech</th>
-                  <th class="py-3 px-3 text-right">Cost</th>
-                  <th class="py-3 px-3 text-center admin-only hidden no-print">Admin</th>
-                </tr>
-              </thead>
-              <tbody id="repairs-tbody" class="divide-y divide-slate-100"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 print-shadow-none">
-          <h4 class="text-xs font-bold uppercase text-slate-600 mb-2">📊 Parts Consumption Summary</h4>
-          <div id="parts-consumption-summary" class="flex flex-wrap gap-2 text-xs"></div>
         </div>
       </section>
 
@@ -694,20 +700,30 @@
       document.getElementById("user-email-display").textContent = user.email;
       document.getElementById("user-role-badge").textContent = currentRole.toUpperCase();
 
+      const isTech = currentRole === "technician";
       document.querySelectorAll(".admin-only").forEach(el => el.classList.toggle("hidden", currentRole !== "admin"));
-      document.querySelectorAll(".tech-or-admin").forEach(el => el.classList.toggle("hidden", currentRole !== "admin" && currentRole !== "technician"));
+      document.querySelectorAll(".tech-or-admin").forEach(el => el.classList.toggle("hidden", currentRole !== "admin" && !isTech));
+      document.querySelectorAll(".non-tech-only").forEach(el => el.classList.toggle("hidden", isTech));
 
       const sourceBadge = document.getElementById("repair-stock-source-badge");
       const selectorLabel = document.getElementById("parts-selector-label");
-      if (currentRole === "technician") {
+      if (isTech) {
         sourceBadge.textContent = "🎒 Deducting from: My Technician Stock";
         sourceBadge.className = "px-2.5 py-1 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800 border border-indigo-300";
         selectorLabel.textContent = "ඔබට නිකුත් කර ඇති උපාංග (My Issued Parts) තෝරන්න:";
         document.getElementById("tech-stock-heading").textContent = "🎒 මා සතුව ඇති ඉතිරි තොග (My Technician Stock Balance)";
+        document.getElementById("tab-techstock-label").textContent = "My Stock";
+        document.getElementById("mob-techstock-label").textContent = "My Stock";
+        document.getElementById("tab-repairs-label").textContent = "Add STB Repair";
+        switchTab("repairs");
       } else {
         sourceBadge.textContent = "📦 Deducting from: Main Warehouse Stock";
         sourceBadge.className = "px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-300";
         selectorLabel.textContent = "මාරු කළ උපාංග (Replaced Parts from Main Stock) තෝරන්න:";
+        document.getElementById("tab-techstock-label").textContent = "Tech Stock";
+        document.getElementById("mob-techstock-label").textContent = "Tech Stock";
+        document.getElementById("tab-repairs-label").textContent = "STB Repairs & Reports";
+        switchTab("stock");
       }
 
       document.getElementById("login-screen").classList.add("hidden");
@@ -723,7 +739,7 @@
       // 2. Technician Stock Listener
       onSnapshot(collection(db, "tech_stock"), (snap) => {
         techStockList = snap.docs.map(d => ({ docId: d.id, ...d.data() })).filter(t => Number(t.qty) > 0);
-        const myItems = currentRole === "technician"
+        const myItems = isTech
           ? techStockList.filter(t => String(t.techEmail || "").toLowerCase() === currentUser.email.toLowerCase())
           : techStockList;
         document.getElementById("count-tech-items").textContent = myItems.length;
@@ -744,10 +760,11 @@
         updateStats(); populateTechFilterDropdown(); renderRepairs();
       });
 
-      // 5. Users Listener (for Admin Roles & Technician Dropdown)
+      // 5. Users Listener
       onSnapshot(collection(db, "users"), (snap) => {
         usersList = snap.docs.map(d => ({ email: d.id, ...d.data() }));
         populateTechnicianSelectors();
+        populateTechFilterDropdown();
         if (currentRole === "admin") {
           document.getElementById("roles-tbody").innerHTML = usersList.map(u => `
             <tr><td class="py-2 px-3 font-medium">${u.email}</td>
@@ -800,6 +817,7 @@
     }
 
     window.renderInventory = () => {
+      const isTech = currentRole === "technician";
       const q = document.getElementById("stock-search").value.toLowerCase();
       const cat = document.getElementById("stock-category").value;
       const type = document.getElementById("stock-type-filter").value;
@@ -818,8 +836,8 @@
           <td class="py-2.5 px-3"><div class="font-medium text-slate-900 text-xs sm:text-sm">${item.name}</div><div class="text-[11px] text-slate-400 font-mono">${item.bomCode || ''}</div></td>
           <td class="py-2.5 px-3 text-xs text-slate-600 hidden md:table-cell">${item.category}</td>
           <td class="py-2.5 px-3 text-right font-bold ${isLow ? 'text-red-600' : 'text-slate-900'}">${Number(item.qty).toLocaleString()}</td>
-          <td class="py-2.5 px-3 text-right text-slate-600 hidden sm:table-cell">Rs. ${Number(item.price).toFixed(2)}</td>
-          <td class="py-2.5 px-3 text-right font-semibold text-xs sm:text-sm">Rs. ${total}</td>
+          <td class="py-2.5 px-3 text-right text-slate-600 hidden sm:table-cell non-tech-only ${isTech ? 'hidden' : ''}">Rs. ${Number(item.price).toFixed(2)}</td>
+          <td class="py-2.5 px-3 text-right font-semibold text-xs sm:text-sm non-tech-only ${isTech ? 'hidden' : ''}">Rs. ${total}</td>
           <td class="py-2.5 px-3 text-center"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${item.isFree ? 'badge-free' : 'badge-paid'}">${item.isFree ? 'FREE' : 'PAID'}</span></td>
           <td class="py-2.5 px-3 text-center admin-only ${currentRole !== 'admin' ? 'hidden' : ''}">
             <button onclick="editItem('${item.docId}')" class="text-blue-600 text-xs font-semibold mr-2">Edit</button>
@@ -887,10 +905,8 @@
       try {
         const batch = writeBatch(db);
         for (const p of issueDraftParts) {
-          // 1. Deduct from Main Inventory
           batch.update(doc(db, "inventory", p.docId), { qty: increment(-p.qty) });
 
-          // 2. Add/Increment Technician Stock
           const safeEmail = techEmail.replace(/[^a-z0-9]/gi, "_");
           const techStockDocId = `${safeEmail}__${p.docId}`;
           batch.set(doc(db, "tech_stock", techStockDocId), {
@@ -904,7 +920,6 @@
             updatedAt: new Date().toISOString()
           }, { merge: true });
 
-          // 3. Log Issue Transaction
           batch.set(doc(collection(db, "tech_issue_logs")), {
             date,
             type: "ISSUE",
@@ -967,8 +982,9 @@
     function renderTechStock() {
       const tbody = document.getElementById("tech-stock-tbody");
       if (!tbody) return;
+      const isTech = currentRole === "technician";
       let list = techStockList;
-      if (currentRole === "technician") {
+      if (isTech) {
         list = list.filter(t => String(t.techEmail || "").toLowerCase() === currentUser.email.toLowerCase());
       } else {
         const filterEmail = document.getElementById("filter-tech-stock-user")?.value || "ALL";
@@ -987,7 +1003,7 @@
           <td class="py-2.5 px-3 font-bold text-blue-700 text-xs sm:text-sm">${t.pcbCode}</td>
           <td class="py-2.5 px-3 text-xs sm:text-sm">${t.itemName}</td>
           <td class="py-2.5 px-3 text-right font-bold text-emerald-700">${Number(t.qty).toLocaleString()}</td>
-          <td class="py-2.5 px-3 text-right text-slate-600 hidden sm:table-cell">Rs. ${val}</td>
+          <td class="py-2.5 px-3 text-right text-slate-600 hidden sm:table-cell non-tech-only ${isTech ? 'hidden' : ''}">Rs. ${val}</td>
           <td class="py-2.5 px-3 text-center admin-only ${currentRole !== 'admin' ? 'hidden' : ''}">
             <button onclick="returnTechPartToMain('${t.docId}')" class="px-2.5 py-1 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded text-xs font-semibold">↩ Return</button>
           </td>
@@ -1025,14 +1041,12 @@
       const q = (searchInput ? searchInput.value : "").trim().toLowerCase();
       if (clearBtn) clearBtn.classList.toggle("hidden", !q);
 
-      // If Technician -> Load ONLY their issued stock!
-      // If Admin -> Load Main Warehouse stock!
       const sourcePool = (currentRole === "technician")
         ? techStockList
             .filter(t => String(t.techEmail || "").toLowerCase() === currentUser.email.toLowerCase() && Number(t.qty) > 0)
             .map(t => ({
-              docId: t.docId,         // tech_stock document ID
-              invDocId: t.invDocId,   // main inventory document ID
+              docId: t.docId,
+              invDocId: t.invDocId,
               id: t.itemId,
               pcbCode: t.pcbCode,
               name: t.itemName,
@@ -1083,8 +1097,16 @@
 
     function populateTechFilterDropdown() {
       const sel = document.getElementById("repair-tech-filter");
-      const techs = [...new Set(repairsList.map(r => r.addedBy).filter(Boolean))];
-      sel.innerHTML = `<option value="ALL">All Technicians</option>` + techs.map(t => `<option value="${t}">${t}</option>`).join("");
+      if (!sel) return;
+      const prev = sel.value;
+      const loginSet = new Set();
+      repairsList.forEach(r => { if (r.addedBy) loginSet.add(r.addedBy.toLowerCase()); });
+      usersList.forEach(u => { if (u.email) loginSet.add(u.email.toLowerCase()); });
+      const logins = [...loginSet].sort();
+
+      sel.innerHTML = `<option value="ALL">👤 Login: All Users (${logins.length})</option>` +
+        logins.map(email => `<option value="${email}">${email}</option>`).join("");
+      if (prev && (prev === "ALL" || logins.includes(prev))) sel.value = prev;
     }
 
     window.onWarrantyChange = () => {
@@ -1133,7 +1155,7 @@
     function renderDraftList() {
       document.getElementById("rep-draft-parts").innerHTML = draftParts.map((p, idx) => `
         <div class="flex items-center justify-between bg-white px-3 py-1.5 rounded border border-slate-300 text-xs">
-          <span><b>[${p.pcbCode}]</b> ${p.itemName} × <b>${p.qty}</b> (Rs. ${(p.qty * p.unitPrice).toFixed(2)})</span>
+          <span><b>[${p.pcbCode}]</b> ${p.itemName} × <b>${p.qty}</b> ${currentRole === 'technician' ? '' : `(Rs. ${(p.qty * p.unitPrice).toFixed(2)})`}</span>
           <button type="button" onclick="removeDraftPart(${idx})" class="text-red-600 hover:text-red-800 font-bold px-1.5">✕</button>
         </div>`).join("");
       onWarrantyChange();
@@ -1213,16 +1235,14 @@
           parts: draftParts.map(({ docId, isTechStock, ...rest }) => rest),
           deductedFrom: currentRole === "technician" ? "TECH_STOCK" : "MAIN_STOCK",
           note,
-          addedBy: currentUser.email,
+          addedBy: currentUser.email.toLowerCase(),
           createdAt: new Date().toISOString()
         });
 
         for (const p of draftParts) {
           if (p.isTechStock) {
-            // Deduct from Technician's own stock!
             batch.update(doc(db, "tech_stock", p.docId), { qty: increment(-p.qty) });
           } else {
-            // Admin deducts from Main Warehouse stock
             batch.update(doc(db, "inventory", p.docId), { qty: increment(-p.qty) });
           }
         }
@@ -1250,6 +1270,8 @@
     };
 
     window.renderRepairs = () => {
+      if (currentRole === "technician") return;
+
       const q = document.getElementById("repair-search").value.toLowerCase();
       const monthFilter = document.getElementById("repair-month-filter").value;
       const techFilter = document.getElementById("repair-tech-filter").value;
@@ -1262,7 +1284,7 @@
           String(r.voidReason || "").toLowerCase().includes(q) ||
           (r.parts || []).some(p => String(p.pcbCode || "").toLowerCase().includes(q));
         const matchMonth = !monthFilter || String(r.date || "").startsWith(monthFilter);
-        const matchTech = techFilter === "ALL" || r.addedBy === techFilter;
+        const matchTech = techFilter === "ALL" || String(r.addedBy || "").toLowerCase() === techFilter.toLowerCase();
         const matchWarranty = warrantyFilter === "ALL" || r.warranty === warrantyFilter;
         return matchQ && matchMonth && matchTech && matchWarranty;
       });
@@ -1313,7 +1335,7 @@
           <td class="py-2.5 px-3 font-bold font-mono text-xs sm:text-sm">${r.serialNumber}</td>
           <td class="py-2.5 px-3">${wBadge}</td>
           <td class="py-2.5 px-3">${partsHtml}</td>
-          <td class="py-2.5 px-3 text-xs"><div>${r.note || '-'}</div><div class="text-[10px] text-slate-400">${r.addedBy || ''}</div></td>
+          <td class="py-2.5 px-3 text-xs"><div>${r.note || '-'}</div><div class="text-[10px] font-semibold text-indigo-700">${r.addedBy || 'Legacy Record'}</div></td>
           <td class="py-2.5 px-3 text-right font-semibold text-xs sm:text-sm">Rs. ${cost.toFixed(0)}</td>
           <td class="py-2.5 px-3 text-center admin-only no-print ${currentRole !== 'admin' ? 'hidden' : ''}">
             <button onclick="deleteRepair('${r.docId}')" class="text-red-600 text-xs font-semibold">Del</button>
@@ -1322,12 +1344,20 @@
     };
 
     window.printRepairReport = () => {
+      const selectedLogin = document.getElementById("repair-tech-filter").value;
+      const selectedMonth = document.getElementById("repair-month-filter").value;
+      document.getElementById("print-report-subtitle").textContent =
+        `Login User: ${selectedLogin === "ALL" ? "All Logins" : selectedLogin}` +
+        (selectedMonth ? ` | Month: ${selectedMonth}` : "");
       document.getElementById("print-generated-date").textContent = new Date().toLocaleString();
-      document.getElementById("print-generated-by").textContent = currentUser.email;
+      document.getElementById("print-generated-by").textContent = `Printed by: ${currentUser.email}`;
       window.print();
     };
 
     window.switchTab = (tab) => {
+      if (currentRole === "technician" && tab === "admin") {
+        tab = "repairs";
+      }
       ["stock", "techstock", "repairs", "admin"].forEach(t => {
         const view = document.getElementById(`view-${t}`);
         if (view) view.classList.toggle("hidden", t !== tab);
@@ -1385,15 +1415,19 @@
       alert("✅ Database Reset සාර්ථකයි!");
     };
     window.exportCSV = () => {
+      if (currentRole === "technician") return;
       const csv = ["ID,PCB,Name,Qty,Price,Type", ...inventoryList.map(i => `${i.id},"${i.pcbCode}","${i.name}",${i.qty},${i.price},${i.isFree ? 'FREE' : 'PAID'}`)].join("\n");
       const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); a.download = "Freesat_Stock.csv"; a.click();
     };
     window.exportRepairsCSV = () => {
-      const csv = ["Date,Serial,Warranty,VoidReason,Parts,Note", ...currentFilteredRepairs.map(r => {
+      if (currentRole === "technician") return;
+      const selectedLogin = document.getElementById("repair-tech-filter").value;
+      const csv = ["Date,Serial,Warranty,VoidReason,Parts,LoginUser,Note", ...currentFilteredRepairs.map(r => {
         const partsStr = (r.parts || []).map(p => `${p.pcbCode} x${p.qty}`).join("; ");
-        return `${r.date},"${r.serialNumber}",${r.warranty},"${r.voidReason || ''}","${partsStr}","${r.note || ''}"`;
+        return `${r.date},"${r.serialNumber}",${r.warranty},"${r.voidReason || ''}","${partsStr}","${r.addedBy || ''}","${r.note || ''}"`;
       })].join("\n");
-      const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); a.download = "Freesat_Repairs.csv"; a.click();
+      const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+      a.download = `Freesat_Repairs_${selectedLogin === "ALL" ? "All" : selectedLogin}.csv`; a.click();
     };
     window.exportJSON = () => {
       const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify({ inventory: inventoryList, repairs: repairsList, techStock: techStockList, issueLogs: issueLogsList }, null, 2)], { type: "application/json" })); a.download = `Freesat_Backup_${new Date().toISOString().slice(0,10)}.json`; a.click();
