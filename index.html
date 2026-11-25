@@ -29,13 +29,43 @@
     body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
     .badge-free { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
     .badge-paid { background: #e0f2fe; color: #075985; border: 1px solid #7dd3fc; }
+
+    #print-page-footer { display: none; }
+
     @media print {
-      body { background: white !important; }
+      @page {
+        size: A4 portrait;
+        margin: 14mm 12mm 18mm 12mm;
+      }
+      body { background: white !important; padding-bottom: 0 !important; }
       .no-print, header, #mobile-bottom-nav, #login-screen, #view-stock, #view-techstock, #view-admin, #repair-form-card, #repair-filter-bar {
         display: none !important;
       }
       #app-screen, #view-repairs, #admin-reports-wrapper, #print-report-header { display: block !important; }
+      main { padding: 0 !important; max-width: 100% !important; }
+      table { page-break-inside: auto; width: 100% !important; }
+      thead { display: table-header-group; }
+      tr { page-break-inside: avoid; page-break-after: auto; }
+      .print-break-avoid { page-break-inside: avoid; }
       .print-shadow-none { box-shadow: none !important; border: 1px solid #cbd5e1 !important; }
+
+      #print-page-footer {
+        display: flex !important;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 10px;
+        color: #475569;
+        border-top: 1px solid #cbd5e1;
+        padding-top: 4px;
+        background: white;
+      }
+      .print-page-number::after {
+        content: "Page " counter(page);
+      }
     }
   </style>
 </head>
@@ -314,18 +344,18 @@
 
       <!-- TAB 3: STB REPAIRS & REPORTS -->
       <section id="view-repairs" class="hidden space-y-5">
-        <div id="print-report-header" class="hidden border-b-2 border-slate-800 pb-4 mb-4">
+        <div id="print-report-header" class="hidden border-b-2 border-slate-800 pb-4 mb-4 print-break-avoid">
           <div class="flex justify-between items-start">
             <div>
-              <h1 class="text-2xl font-bold text-slate-900">FREESAT STB SERVICE & REPAIR REPORT</h1>
-              <p id="print-report-subtitle" class="text-sm font-semibold text-blue-800 mt-1">Login Wise Report: All Users</p>
+              <h1 class="text-xl font-bold text-slate-900">FREESAT STB SERVICE & REPAIR REPORT</h1>
+              <p id="print-report-subtitle" class="text-sm font-semibold text-blue-800 mt-1">Period: All Time | Login Wise Report: All Users</p>
             </div>
-            <div class="text-right text-xs text-slate-500">
+            <div class="text-right text-xs text-slate-600">
               <p id="print-generated-date"></p>
               <p id="print-generated-by"></p>
             </div>
           </div>
-          <div id="print-summary-strip" class="grid grid-cols-5 gap-2 mt-4 bg-slate-100 p-3 rounded border text-xs"></div>
+          <div id="print-summary-strip" class="grid grid-cols-5 gap-2 mt-3 bg-slate-100 p-2.5 rounded border text-xs"></div>
         </div>
 
         <!-- Add Repair / Warranty Void Form -->
@@ -419,8 +449,8 @@
           <div id="repair-filter-bar" class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
             <div class="flex flex-wrap items-center justify-between gap-2">
               <div>
-                <h3 class="font-bold text-slate-800 text-sm sm:text-base">📋 STB Repair වාර්තා සහ Reports (Login Wise)</h3>
-                <p class="text-[11px] text-slate-500">Login / Technician අනුව වෙන වෙනම වාර්තා පෙරා (Filter) CSV හෝ PDF ලබා ගන්න.</p>
+                <h3 class="font-bold text-slate-800 text-sm sm:text-base">📋 STB Repair වාර්තා සහ Reports (Period & Login Wise)</h3>
+                <p class="text-[11px] text-slate-500">තනි මාසයක්, පසුගිය මාස 6, වසරේ ආරම්භයේ සිට (YTD) හෝ Custom Date Range අනුව CSV / PDF ලබා ගන්න.</p>
               </div>
               <div class="flex gap-2">
                 <button onclick="exportRepairsCSV()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg border">📥 CSV</button>
@@ -430,16 +460,41 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
               <input type="text" id="repair-search" oninput="renderRepairs()" placeholder="🔍 Serial No, Part හෝ Void..." class="px-3 py-2 border border-slate-300 rounded-lg text-sm" />
-              <input type="month" id="repair-month-filter" onchange="renderRepairs()" class="px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white" />
-              <select id="repair-tech-filter" onchange="renderRepairs()" class="px-3 py-2 border-2 border-blue-400 rounded-lg text-sm bg-blue-50/40 font-semibold text-slate-800">
+
+              <!-- Period Selector -->
+              <select id="repair-period-mode" onchange="onPeriodModeChange()" class="px-3 py-2 border-2 border-blue-500 rounded-lg text-sm bg-blue-50/40 font-semibold text-slate-800">
+                <option value="ALL_TIME">📅 Period: All Time</option>
+                <option value="MONTH">🗓️ Single Month</option>
+                <option value="LAST_6_MONTHS">📆 Last 6 Months</option>
+                <option value="YTD">📈 Year to Date (Jan 1 – Today)</option>
+                <option value="CUSTOM_RANGE">↔️ Custom Date Range</option>
+              </select>
+
+              <select id="repair-tech-filter" onchange="renderRepairs()" class="px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white font-medium text-slate-800">
                 <option value="ALL">👤 Login: All Users</option>
               </select>
+
               <select id="repair-warranty-filter" onchange="renderRepairs()" class="px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white">
                 <option value="ALL">Warranty: All</option>
                 <option value="WITH_WARRANTY">With Warranty</option>
                 <option value="NO_WARRANTY">Out of Warranty (Paid)</option>
                 <option value="WARRANTY_VOID">Warranty Void Only</option>
               </select>
+            </div>
+
+            <!-- Dynamic Sub-controls for Single Month or Custom Date Range -->
+            <div id="repair-custom-period-row" class="hidden flex-wrap items-center gap-2 pt-1">
+              <div id="month-picker-wrap" class="hidden flex items-center gap-2">
+                <label class="text-xs font-semibold text-slate-600">මාසය (Month):</label>
+                <input type="month" id="repair-month-filter" onchange="renderRepairs()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-sm bg-white" />
+              </div>
+              <div id="date-range-wrap" class="hidden flex-wrap items-center gap-2">
+                <label class="text-xs font-semibold text-slate-600">From:</label>
+                <input type="date" id="repair-from-date" onchange="renderRepairs()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-sm bg-white" />
+                <label class="text-xs font-semibold text-slate-600">To:</label>
+                <input type="date" id="repair-to-date" onchange="renderRepairs()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-sm bg-white" />
+              </div>
+              <span id="active-period-badge" class="text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-full"></span>
             </div>
 
             <div id="filtered-repair-stats" class="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-2 border-t border-slate-100 text-xs"></div>
@@ -465,8 +520,8 @@
             </div>
           </div>
 
-          <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 print-shadow-none">
-            <h4 class="text-xs font-bold uppercase text-slate-600 mb-2">📊 Parts Consumption Summary (Selected Login / Filter)</h4>
+          <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 print-shadow-none print-break-avoid">
+            <h4 class="text-xs font-bold uppercase text-slate-600 mb-2">📊 Parts Consumption Summary (Selected Period / Login / Filter)</h4>
             <div id="parts-consumption-summary" class="flex flex-wrap gap-2 text-xs"></div>
           </div>
         </div>
@@ -563,6 +618,12 @@
         </div>
       </section>
     </main>
+
+    <!-- Print Footer with Page Number -->
+    <div id="print-page-footer">
+      <span id="print-footer-title">Freesat STB Service & Repair Report</span>
+      <span class="print-page-number font-semibold"></span>
+    </div>
   </div>
 
   <!-- ADD / EDIT MODAL -->
@@ -690,6 +751,83 @@
 
     document.getElementById("rep-date").valueAsDate = new Date();
     document.getElementById("issue-date").valueAsDate = new Date();
+
+    // --- PERIOD / DATE RANGE HELPERS FOR REPORTS ---
+    function formatLocalDateISO(d) {
+      const yr = d.getFullYear();
+      const mo = String(d.getMonth() + 1).padStart(2, "0");
+      const da = String(d.getDate()).padStart(2, "0");
+      return `${yr}-${mo}-${da}`;
+    }
+
+    function getActivePeriodBounds() {
+      const mode = document.getElementById("repair-period-mode")?.value || "ALL_TIME";
+      const now = new Date();
+      const todayStr = formatLocalDateISO(now);
+
+      if (mode === "MONTH") {
+        const m = document.getElementById("repair-month-filter")?.value || "";
+        return {
+          mode,
+          month: m,
+          fromDate: m ? `${m}-01` : "",
+          toDate: "",
+          label: m ? `Month: ${m}` : "Month: All"
+        };
+      }
+      if (mode === "LAST_6_MONTHS") {
+        const start = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+        const fromDate = formatLocalDateISO(start);
+        return {
+          mode,
+          month: "",
+          fromDate,
+          toDate: todayStr,
+          label: `Last 6 Months (${fromDate} to ${todayStr})`
+        };
+      }
+      if (mode === "YTD") {
+        const fromDate = `${now.getFullYear()}-01-01`;
+        return {
+          mode,
+          month: "",
+          fromDate,
+          toDate: todayStr,
+          label: `Year to Date (${fromDate} to ${todayStr})`
+        };
+      }
+      if (mode === "CUSTOM_RANGE") {
+        const fromDate = document.getElementById("repair-from-date")?.value || "";
+        const toDate = document.getElementById("repair-to-date")?.value || "";
+        let lbl = "Custom Range";
+        if (fromDate && toDate) lbl = `Range: ${fromDate} to ${toDate}`;
+        else if (fromDate) lbl = `From: ${fromDate}`;
+        else if (toDate) lbl = `Up to: ${toDate}`;
+        return { mode, month: "", fromDate, toDate, label: lbl };
+      }
+      return { mode: "ALL_TIME", month: "", fromDate: "", toDate: "", label: "Period: All Time" };
+    }
+
+    window.onPeriodModeChange = () => {
+      const mode = document.getElementById("repair-period-mode").value;
+      const customRow = document.getElementById("repair-custom-period-row");
+      const monthWrap = document.getElementById("month-picker-wrap");
+      const rangeWrap = document.getElementById("date-range-wrap");
+
+      const showMonth = mode === "MONTH";
+      const showRange = mode === "CUSTOM_RANGE";
+      const showBadge = mode === "LAST_6_MONTHS" || mode === "YTD";
+
+      monthWrap.classList.toggle("hidden", !showMonth);
+      rangeWrap.classList.toggle("hidden", !showRange);
+      customRow.classList.toggle("hidden", !(showMonth || showRange || showBadge));
+
+      const bounds = getActivePeriodBounds();
+      const badge = document.getElementById("active-period-badge");
+      if (badge) badge.textContent = bounds.label;
+
+      renderRepairs();
+    };
 
     // --- RECALCULATE LIVE PAID STOCK TO EXACT TARGET (e.g., Rs. 1,000,000) ---
     window.recalculatePaidStockToTarget = async (targetTotal = 1000000) => {
@@ -1650,20 +1788,29 @@
       if (currentRole === "technician") return;
 
       const q = document.getElementById("repair-search").value.toLowerCase();
-      const monthFilter = document.getElementById("repair-month-filter").value;
+      const bounds = getActivePeriodBounds();
       const techFilter = document.getElementById("repair-tech-filter").value;
       const warrantyFilter = document.getElementById("repair-warranty-filter").value;
 
       currentFilteredRepairs = repairsList.filter(r => {
+        const rDate = String(r.date || "");
         const matchQ = !q ||
           String(r.serialNumber || "").toLowerCase().includes(q) ||
           String(r.note || "").toLowerCase().includes(q) ||
           String(r.voidReason || "").toLowerCase().includes(q) ||
           (r.parts || []).some(p => String(p.pcbCode || "").toLowerCase().includes(q) || String(p.bomCode || "").toLowerCase().includes(q));
-        const matchMonth = !monthFilter || String(r.date || "").startsWith(monthFilter);
+
+        let matchPeriod = true;
+        if (bounds.mode === "MONTH" && bounds.month) {
+          matchPeriod = rDate.startsWith(bounds.month);
+        } else {
+          if (bounds.fromDate && rDate < bounds.fromDate) matchPeriod = false;
+          if (bounds.toDate && rDate > bounds.toDate) matchPeriod = false;
+        }
+
         const matchTech = techFilter === "ALL" || String(r.addedBy || "").toLowerCase() === techFilter.toLowerCase();
         const matchWarranty = warrantyFilter === "ALL" || r.warranty === warrantyFilter;
-        return matchQ && matchMonth && matchTech && matchWarranty;
+        return matchQ && matchPeriod && matchTech && matchWarranty;
       });
 
       let withW = 0, noW = 0, voidW = 0, totalCost = 0;
@@ -1781,10 +1928,10 @@
 
     window.printRepairReport = () => {
       const selectedLogin = document.getElementById("repair-tech-filter").value;
-      const selectedMonth = document.getElementById("repair-month-filter").value;
-      document.getElementById("print-report-subtitle").textContent =
-        `Login User: ${selectedLogin === "ALL" ? "All Logins" : selectedLogin}` +
-        (selectedMonth ? ` | Month: ${selectedMonth}` : "");
+      const bounds = getActivePeriodBounds();
+      const subtitle = `${bounds.label} | Login: ${selectedLogin === "ALL" ? "All Logins" : selectedLogin}`;
+      document.getElementById("print-report-subtitle").textContent = subtitle;
+      document.getElementById("print-footer-title").textContent = `Freesat Repair Report • ${subtitle}`;
       document.getElementById("print-generated-date").textContent = new Date().toLocaleString();
       document.getElementById("print-generated-by").textContent = `Printed by: ${currentUser.email}`;
       window.print();
@@ -1860,12 +2007,14 @@
     window.exportRepairsCSV = () => {
       if (currentRole === "technician") return;
       const selectedLogin = document.getElementById("repair-tech-filter").value;
+      const bounds = getActivePeriodBounds();
       const csv = ["Date,Serial,Warranty,VoidReason,Parts,LoginUser,Note", ...currentFilteredRepairs.map(r => {
         const partsStr = (r.parts || []).map(p => `${p.pcbCode} x${p.qty}`).join("; ");
         return `${r.date},"${r.serialNumber}",${r.warranty},"${r.voidReason || ''}","${partsStr}","${r.addedBy || ''}","${r.note || ''}"`;
       })].join("\n");
+      const safePeriod = bounds.mode.toLowerCase();
       const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
-      a.download = `Freesat_Repairs_${selectedLogin === "ALL" ? "All" : selectedLogin}.csv`; a.click();
+      a.download = `Freesat_Repairs_${safePeriod}_${selectedLogin === "ALL" ? "All" : selectedLogin}.csv`; a.click();
     };
     window.exportJSON = () => {
       const a = document.createElement("a");
