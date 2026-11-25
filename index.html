@@ -607,63 +607,63 @@
 
     const INITIAL_DATA = {
       inventory: [
-        { id: 1, pcbCode: "C113", name: "TCC0402C0G3R9C500AT (0402 3.9pF 50V)", bomCode: "620310-3390C00", category: "Capacitors", qty: 7000, price: 1, minStock: 500, isFree: false },
-        { id: 2, pcbCode: "AR8,AR9,AR120", name: "0603 560Ω SMD Resistor", bomCode: "510126-0561F00", category: "Resistors", qty: 200, price: 1, minStock: 50, isFree: false },
-        { id: 3, pcbCode: "AR24", name: "0805 10Ω ±5% SMD Resistor", bomCode: "510136-0100J00", category: "Resistors", qty: 200, price: 1, minStock: 50, isFree: false },
-        { id: 4, pcbCode: "U11-A", name: "RDA5815M Satellite Tuner IC (Lot 1)", bomCode: "641110-0055300", category: "IC", qty: 85, price: 100, minStock: 20, isFree: false },
-        { id: 5, pcbCode: "U11-B", name: "RDA5815M QFN-20 Satellite Tuner IC (Lot 2)", bomCode: "641110-0055300", category: "IC", qty: 102, price: 100, minStock: 20, isFree: false },
-        { id: 6, pcbCode: "SL4", name: "0805 3A 120Ω Ferrite Bead", bomCode: "532126-0000800", category: "Inductors & Beads", qty: 200, price: 3, minStock: 50, isFree: false },
-        { id: 7, pcbCode: "U2", name: "STI8036 LNB Power Regulator IC", bomCode: "656110-0008700", category: "IC", qty: 102, price: 60, minStock: 25, isFree: false },
-        { id: 8, pcbCode: "U9", name: "WR1117AN-ADA70R LDO Regulator", bomCode: "656118-0002600", category: "IC", qty: 200, price: 25, minStock: 50, isFree: false },
-        { id: 9, pcbCode: "AC19,AC25", name: "0603 6.3V 4.7µF SMD Capacitor", bomCode: "520126-0475M00", category: "Capacitors", qty: 200, price: 2, minStock: 50, isFree: false },
-        { id: 10, pcbCode: "U12,U13,U14", name: "IC;ESD GTT0524PFC DFN2510-10L GT", bomCode: "641110-0088600", category: "IC", qty: 199, price: 24.13, minStock: 50, isFree: true },
-        { id: 11, pcbCode: "C-10U", name: "TCC0805X5R106M160FTN (0805 10µF 16V)", bomCode: "520330-2106M00", category: "Capacitors", qty: 3000, price: 3, minStock: 300, isFree: false },
-        { id: 12, pcbCode: "C-100N", name: "TCC0402X5R104M160AT (0402 100nF 16V)", bomCode: "520310-2104M00", category: "Capacitors", qty: 10000, price: 1, minStock: 1000, isFree: true },
-        { id: 13, pcbCode: "C-2R2", name: "TCC0402C0G2R2C500AT (0402 2.2pF 50V)", bomCode: "520510-5228C00", category: "Capacitors", qty: 10000, price: 1, minStock: 1000, isFree: false },
-        { id: 14, pcbCode: "D1", name: "BAV99 (A7) Switching Diode SOT-23", bomCode: "611106-0000100", category: "Diodes & MOSFETs", qty: 3000, price: 3, minStock: 300, isFree: false },
-        { id: 15, pcbCode: "D-SS14", name: "1N5819 / SS14 Schottky Diode SMA (Reel)", bomCode: "611186-0000900", category: "Diodes & MOSFETs", qty: 2000, price: 5, minStock: 200, isFree: false },
-        { id: 16, pcbCode: "Q8", name: "SI2301 (A1SHB) P-Channel MOSFET (Reel)", bomCode: "621220-0000900", category: "Diodes & MOSFETs", qty: 3000, price: 6, minStock: 300, isFree: false },
-        { id: 17, pcbCode: "J-DC", name: "SMD DC Power Jack (2.0mm)", bomCode: "440550-0001900", category: "Connectors & Jacks", qty: 400, price: 15, minStock: 50, isFree: false },
-        { id: 18, pcbCode: "J-AV", name: "SMD 3.5mm Audio/AV Socket", bomCode: "440810-0002800", category: "Connectors & Jacks", qty: 1000, price: 15, minStock: 100, isFree: false },
-        { id: 19, pcbCode: "J-HDMI", name: "HDMI Type-A 19P SMT Port", bomCode: "440270-0002000", category: "Connectors & Jacks", qty: 480, price: 45, minStock: 50, isFree: false },
-        { id: 20, pcbCode: "U-13", name: "Montage M88TS6011-T Satellite Tuner IC", bomCode: "641110-0071400", category: "IC", qty: 6000, price: 58.33, minStock: 500, isFree: false },
-        { id: 21, pcbCode: "IRD1", name: "IR Receiver Module (3-Pin Sensor)", bomCode: "593118-0002000", category: "Crystals & Sensors", qty: 200, price: 20, minStock: 40, isFree: false },
-        { id: 22, pcbCode: "U8201", name: "GTE5C008V SOT23-6 ESD-TVS Protection IC (641110-0088500)", bomCode: "641110-0088500", category: "IC", qty: 3000, price: 18, minStock: 300, isFree: false },
-        { id: 23, pcbCode: "pu1,pu2,u807", name: "Joulwatt JW5352MSOTB#TR Buck IC", bomCode: "641110-0089300", category: "IC", qty: 2997, price: 25, minStock: 300, isFree: false },
-        { id: 24, pcbCode: "U-TM34", name: "Tollsemi TMI3410 Buck Converter IC", bomCode: "641118-0035500", category: "IC", qty: 3000, price: 20, minStock: 300, isFree: false },
-        { id: 25, pcbCode: "U12,U13,U14", name: "GTT0524PFC DFN2510-10L ESD Protection IC (641110-0088600)", bomCode: "641110-0088600", category: "IC", qty: 3000, price: 24.13, minStock: 300, isFree: false },
-        { id: 26, pcbCode: "DC Power Jack", name: "DC-005 DC Power Jack Socket 2.0mm (440550-0000200)", bomCode: "440550-0000200", category: "Connectors & Jacks", qty: 700, price: 10, minStock: 150, isFree: false },
-        { id: 27, pcbCode: "RF-IN", name: "F-Type RF/Satellite Tuner Connector & Shield (132100-0007100)", bomCode: "132100-0007100", category: "Connectors & Jacks", qty: 50, price: 58, minStock: 20, isFree: false },
-        { id: 28, pcbCode: "CT11", name: "0402 50V 22pF ±0.25pF SMD Capacitor (MLCC) (520510-5228C00)", bomCode: "520510-5228C00", category: "Capacitors", qty: 100, price: 1, minStock: 50, isFree: true },
-        { id: 29, pcbCode: "U-FLASH", name: "ZB25VQ128DSJG 128Mbit SPI NOR Flash IC (652618-0001400)", bomCode: "652618-0001400", category: "IC", qty: 300, price: 80, minStock: 50, isFree: false },
-        { id: 30, pcbCode: "QA4,QP5", name: "NPN 2N3904 Transistor Lot 1 (621116-0000300)", bomCode: "621116-0000300", category: "Diodes & MOSFETs", qty: 30, price: 1.5, minStock: 10, isFree: true },
-        { id: 31, pcbCode: "IMQ1", name: "SI2301 P-Channel MOSFET Strip (621220-0000900)", bomCode: "621220-0000900", category: "Diodes & MOSFETs", qty: 50, price: 2.5, minStock: 15, isFree: true },
-        { id: 32, pcbCode: "SD1", name: "SS14 / 1N5819 Schottky Diode Strip (611186-0000900)", bomCode: "611186-0000900", category: "Diodes & MOSFETs", qty: 50, price: 2, minStock: 15, isFree: true },
-        { id: 33, pcbCode: "U8201", name: "GTE SL008V IC (641110-0088500)", bomCode: "641110-0088500", category: "IC", qty: 100, price: 18, minStock: 15, isFree: true },
-        { id: 34, pcbCode: "CU11,CP64", name: "16V 220µF 6.3×7.7mm SMD Electrolytic Capacitor (521160-2221M10)", bomCode: "521160-2221M10", category: "Capacitors", qty: 50, price: 9, minStock: 15, isFree: true },
-        { id: 35, pcbCode: "SD2", name: "1N4007 (M7) SMD Rectifier Diode (611186-0000500)", bomCode: "611186-0000500", category: "Diodes & MOSFETs", qty: 100, price: 1.5, minStock: 25, isFree: true },
-        { id: 36, pcbCode: "C-0805-10U", name: "0805 16V 10µF ±20% SMD Capacitor Strip (520330-2106M00)", bomCode: "520330-2106M00", category: "Capacitors", qty: 100, price: 2, minStock: 25, isFree: false },
-        { id: 37, pcbCode: "R72/R50", name: "0805 100Ω ±5% 1/8W SMD Resistor (510136-0101J00)", bomCode: "510136-0101J00", category: "Resistors", qty: 25, price: 1, minStock: 10, isFree: false },
-        { id: 38, pcbCode: "FB-120R", name: "0805 (2012) 3A 120R ±25% Ferrite Bead Strip (532126-0000800)", bomCode: "532126-0000800", category: "Inductors & Beads", qty: 100, price: 2, minStock: 25, isFree: false },
-        { id: 39, pcbCode: "QA4,QP5", name: "2N3904 NPN Transistor Strip (621116-0000300)", bomCode: "621116-0000300", category: "Diodes & MOSFETs", qty: 100, price: 1.5, minStock: 25, isFree: false },
-        { id: 40, pcbCode: "C-0805-10UK", name: "0805 16V 10µF ±10% SMD Capacitor Strip (520330-2106K00)", bomCode: "520330-2106K00", category: "Capacitors", qty: 100, price: 2, minStock: 25, isFree: false },
-        { id: 41, pcbCode: "R-100R", name: "0805 100Ω ±5% 1/8W SMD Resistor Strip (510136-0101J00)", bomCode: "510136-0101J00", category: "Resistors", qty: 100, price: 1, minStock: 25, isFree: false },
-        { id: 42, pcbCode: "QA4,QP5", name: "2N3904 NPN Transistor Strip Lot 2 (621116-0000300)", bomCode: "621116-0000300", category: "Diodes & MOSFETs", qty: 50, price: 1.5, minStock: 15, isFree: true },
-        { id: 43, pcbCode: "CU11,CP64", name: "16V 220µF ±20% Φ6.3×7.7mm SMD Electrolytic Capacitor (521160-2221M10)", bomCode: "521160-2221M10", category: "Capacitors", qty: 20, price: 9, minStock: 10, isFree: true },
-        { id: 44, pcbCode: "CPU", name: "Montage MS2230-0100 Main STB SoC / CPU Tray (651110-W281W)", bomCode: "651110-W281W", category: "IC", qty: 200, price: 750, minStock: 30, isFree: false },
-        { id: 45, pcbCode: "CU11,CP64,C89,C840,C91", name: "VT 16V 220µF 6.3×7.7mm SMD Electrolytic Capacitor Reel (521160-2221M10)", bomCode: "521160-2221M10", category: "Capacitors", qty: 1000, price: 9, minStock: 150, isFree: false },
-        { id: 46, pcbCode: "CPU -Hi silicon", name: "HiSilicon Hi3716MRBCV431I0002S Main STB SoC / CPU", bomCode: "Hi3716MRBCV431I0002S", category: "IC", qty: 50, price: 850, minStock: 10, isFree: false },
-        { id: 47, pcbCode: "U2", name: "STI8036 LNB Power Regulator IC lot2", bomCode: "656110-0008700", category: "IC", qty: 95, price: 60, minStock: 25, isFree: false },
-        { id: 48, pcbCode: "D1", name: "BAV99 (A7) Switching Diode SOT-23-lot-2", bomCode: "611106-0000100", category: "Diodes & MOSFETs", qty: 100, price: 3, minStock: 20, isFree: true },
-        { id: 49, pcbCode: "SD2", name: "LL4007 DO-214AC Rectifier Diode Reel (611186-0000500)", bomCode: "611186-0000500", category: "Diodes & MOSFETs", qty: 2000, price: 1.5, minStock: 200, isFree: false },
-        { id: 50, pcbCode: "HS-CPU", name: "Aluminum Heatsink for STB SoC/CPU (181010-0006200)", bomCode: "181010-0006200", category: "Hardware & Mechanical", qty: 500, price: 12, minStock: 50, isFree: false }
+        { id: 1, pcbCode: "C113", name: "TCC0402C0G3R9C500AT (0402 3.9pF 50V)", bomCode: "620310-3390C00", category: "Capacitors", qty: 7000, price: 2.04, minStock: 500, isFree: false },
+        { id: 2, pcbCode: "AR8,AR9,AR120", name: "0603 560Ω SMD Resistor", bomCode: "510126-0561F00", category: "Resistors", qty: 200, price: 2.04, minStock: 50, isFree: false },
+        { id: 3, pcbCode: "AR24", name: "0805 10Ω ±5% SMD Resistor", bomCode: "510136-0100J00", category: "Resistors", qty: 200, price: 2.04, minStock: 50, isFree: false },
+        { id: 4, pcbCode: "U11-A", name: "RDA5815M Satellite Tuner IC (Lot 1)", bomCode: "641110-0055300", category: "IC", qty: 82, price: 203.75, minStock: 20, isFree: false },
+        { id: 5, pcbCode: "U11-B", name: "RDA5815M QFN-20 Satellite Tuner IC (Lot 2)", bomCode: "641110-0055300", category: "IC", qty: 102, price: 203.75, minStock: 20, isFree: false },
+        { id: 6, pcbCode: "SL4", name: "0805 3A 120Ω Ferrite Bead", bomCode: "532126-0000800", category: "Inductors & Beads", qty: 200, price: 6.11, minStock: 50, isFree: false },
+        { id: 7, pcbCode: "U2", name: "STI8036 LNB Power Regulator IC", bomCode: "656110-0008700", category: "IC", qty: 102, price: 122.25, minStock: 25, isFree: false },
+        { id: 8, pcbCode: "U9", name: "WR1117AN-ADA70R LDO Regulator", bomCode: "656118-0002600", category: "IC", qty: 200, price: 50.94, minStock: 50, isFree: false },
+        { id: 9, pcbCode: "AC19,AC25", name: "0603 6.3V 4.7µF SMD Capacitor", bomCode: "520126-0475M00", category: "Capacitors", qty: 200, price: 4.08, minStock: 50, isFree: false },
+        { id: 10, pcbCode: "U12,U13,U14", name: "IC;ESD GTT0524PFC DFN2510-10L GT", bomCode: "641110-0088600", category: "IC", qty: 198, price: 0, minStock: 50, isFree: true },
+        { id: 11, pcbCode: "C-10U", name: "TCC0805X5R106M160FTN (0805 10µF 16V)", bomCode: "520330-2106M00", category: "Capacitors", qty: 3000, price: 6.11, minStock: 300, isFree: false },
+        { id: 12, pcbCode: "C-100N", name: "TCC0402X5R104M160AT (0402 100nF 16V)", bomCode: "520310-2104M00", category: "Capacitors", qty: 10000, price: 0, minStock: 1000, isFree: true },
+        { id: 13, pcbCode: "C-2R2", name: "TCC0402C0G2R2C500AT (0402 2.2pF 50V)", bomCode: "520510-5228C00", category: "Capacitors", qty: 10000, price: 2.04, minStock: 1000, isFree: false },
+        { id: 14, pcbCode: "D1", name: "BAV99 (A7) Switching Diode SOT-23", bomCode: "611106-0000100", category: "Diodes & MOSFETs", qty: 3000, price: 6.11, minStock: 300, isFree: false },
+        { id: 15, pcbCode: "D-SS14", name: "1N5819 / SS14 Schottky Diode SMA (Reel)", bomCode: "611186-0000900", category: "Diodes & MOSFETs", qty: 2000, price: 10.19, minStock: 200, isFree: false },
+        { id: 16, pcbCode: "Q8", name: "SI2301 (A1SHB) P-Channel MOSFET (Reel)", bomCode: "621220-0000900", category: "Diodes & MOSFETs", qty: 3000, price: 12.23, minStock: 300, isFree: false },
+        { id: 17, pcbCode: "J-DC", name: "SMD DC Power Jack (2.0mm)", bomCode: "440550-0001900", category: "Connectors & Jacks", qty: 400, price: 30.56, minStock: 50, isFree: false },
+        { id: 18, pcbCode: "J-AV", name: "SMD 3.5mm Audio/AV Socket", bomCode: "440810-0002800", category: "Connectors & Jacks", qty: 1000, price: 30.56, minStock: 100, isFree: false },
+        { id: 19, pcbCode: "J-HDMI", name: "HDMI Type-A 19P SMT Port", bomCode: "440270-0002000", category: "Connectors & Jacks", qty: 479, price: 91.69, minStock: 50, isFree: false },
+        { id: 20, pcbCode: "U-13", name: "Montage M88TS6011-T Satellite Tuner IC", bomCode: "641110-0071400", category: "IC", qty: 6000, price: 118.85, minStock: 500, isFree: false },
+        { id: 21, pcbCode: "IRD1", name: "IR Receiver Module (3-Pin Sensor)", bomCode: "593118-0002000", category: "Crystals & Sensors", qty: 200, price: 40.75, minStock: 40, isFree: false },
+        { id: 22, pcbCode: "U8201", name: "GTE5C008V SOT23-6 ESD-TVS Protection IC (641110-0088500)", bomCode: "641110-0088500", category: "IC", qty: 3000, price: 36.68, minStock: 300, isFree: false },
+        { id: 23, pcbCode: "pu1,pu2,u807", name: "Joulwatt JW5352MSOTB#TR Buck IC", bomCode: "641110-0089300", category: "IC", qty: 2994, price: 50.94, minStock: 300, isFree: false },
+        { id: 24, pcbCode: "U-TM34", name: "Tollsemi TMI3410 Buck Converter IC", bomCode: "641118-0035500", category: "IC", qty: 3000, price: 40.75, minStock: 300, isFree: false },
+        { id: 25, pcbCode: "U12,U13,U14", name: "GTT0524PFC DFN2510-10L ESD Protection IC (641110-0088600)", bomCode: "641110-0088600", category: "IC", qty: 3000, price: 49.17, minStock: 300, isFree: false },
+        { id: 26, pcbCode: "DC Power Jack", name: "DC-005 DC Power Jack Socket 2.0mm (440550-0000200)", bomCode: "440550-0000200", category: "Connectors & Jacks", qty: 699, price: 20.38, minStock: 150, isFree: false },
+        { id: 27, pcbCode: "RF-IN", name: "F-Type RF/Satellite Tuner Connector & Shield (132100-0007100)", bomCode: "132100-0007100", category: "Connectors & Jacks", qty: 50, price: 118.18, minStock: 20, isFree: false },
+        { id: 28, pcbCode: "CT11", name: "0402 50V 22pF ±0.25pF SMD Capacitor (MLCC) (520510-5228C00)", bomCode: "520510-5228C00", category: "Capacitors", qty: 100, price: 0, minStock: 50, isFree: true },
+        { id: 29, pcbCode: "U-FLASH", name: "ZB25VQ128DSJG 128Mbit SPI NOR Flash IC (652618-0001400)", bomCode: "652618-0001400", category: "IC", qty: 300, price: 163, minStock: 50, isFree: false },
+        { id: 30, pcbCode: "QA4,QP5", name: "NPN 2N3904 Transistor Lot 1 (621116-0000300)", bomCode: "621116-0000300", category: "Diodes & MOSFETs", qty: 30, price: 0, minStock: 10, isFree: true },
+        { id: 31, pcbCode: "IMQ1", name: "SI2301 P-Channel MOSFET Strip (621220-0000900)", bomCode: "621220-0000900", category: "Diodes & MOSFETs", qty: 50, price: 0, minStock: 15, isFree: true },
+        { id: 32, pcbCode: "SD1", name: "SS14 / 1N5819 Schottky Diode Strip (611186-0000900)", bomCode: "611186-0000900", category: "Diodes & MOSFETs", qty: 50, price: 0, minStock: 15, isFree: true },
+        { id: 33, pcbCode: "U8201", name: "GTE SL008V IC (641110-0088500)", bomCode: "641110-0088500", category: "IC", qty: 100, price: 0, minStock: 15, isFree: true },
+        { id: 34, pcbCode: "CU11,CP64", name: "16V 220µF 6.3×7.7mm SMD Electrolytic Capacitor (521160-2221M10)", bomCode: "521160-2221M10", category: "Capacitors", qty: 50, price: 0, minStock: 15, isFree: true },
+        { id: 35, pcbCode: "SD2", name: "1N4007 (M7) SMD Rectifier Diode (611186-0000500)", bomCode: "611186-0000500", category: "Diodes & MOSFETs", qty: 100, price: 0, minStock: 25, isFree: true },
+        { id: 36, pcbCode: "C-0805-10U", name: "0805 16V 10µF ±20% SMD Capacitor Strip (520330-2106M00)", bomCode: "520330-2106M00", category: "Capacitors", qty: 100, price: 4.08, minStock: 25, isFree: false },
+        { id: 37, pcbCode: "R72/R50", name: "0805 100Ω ±5% 1/8W SMD Resistor (510136-0101J00)", bomCode: "510136-0101J00", category: "Resistors", qty: 25, price: 2.04, minStock: 10, isFree: false },
+        { id: 38, pcbCode: "FB-120R", name: "0805 (2012) 3A 120R ±25% Ferrite Bead Strip (532126-0000800)", bomCode: "532126-0000800", category: "Inductors & Beads", qty: 100, price: 4.08, minStock: 25, isFree: false },
+        { id: 39, pcbCode: "QA4,QP5", name: "2N3904 NPN Transistor Strip (621116-0000300)", bomCode: "621116-0000300", category: "Diodes & MOSFETs", qty: 100, price: 3.06, minStock: 25, isFree: false },
+        { id: 40, pcbCode: "C-0805-10UK", name: "0805 16V 10µF ±10% SMD Capacitor Strip (520330-2106K00)", bomCode: "520330-2106K00", category: "Capacitors", qty: 100, price: 4.08, minStock: 25, isFree: false },
+        { id: 41, pcbCode: "R-100R", name: "0805 100Ω ±5% 1/8W SMD Resistor Strip (510136-0101J00)", bomCode: "510136-0101J00", category: "Resistors", qty: 100, price: 2.04, minStock: 25, isFree: false },
+        { id: 42, pcbCode: "QA4,QP5", name: "2N3904 NPN Transistor Strip Lot 2 (621116-0000300)", bomCode: "621116-0000300", category: "Diodes & MOSFETs", qty: 50, price: 0, minStock: 15, isFree: true },
+        { id: 43, pcbCode: "CU11,CP64", name: "16V 220µF ±20% Φ6.3×7.7mm SMD Electrolytic Capacitor (521160-2221M10)", bomCode: "521160-2221M10", category: "Capacitors", qty: 20, price: 0, minStock: 10, isFree: true },
+        { id: 44, pcbCode: "CPU", name: "Montage MS2230-0100 Main STB SoC / CPU Tray (651110-W281W)", bomCode: "651110-W281W", category: "IC", qty: 200, price: 1528.13, minStock: 30, isFree: false },
+        { id: 45, pcbCode: "CU11,CP64,C89,C840,C91", name: "VT 16V 220µF 6.3×7.7mm SMD Electrolytic Capacitor Reel (521160-2221M10)", bomCode: "521160-2221M10", category: "Capacitors", qty: 1000, price: 18.34, minStock: 150, isFree: false },
+        { id: 46, pcbCode: "CPU -Hi silicon", name: "HiSilicon Hi3716MRBCV431I0002S Main STB SoC / CPU", bomCode: "Hi3716MRBCV431I0002S", category: "IC", qty: 50, price: 1731.88, minStock: 10, isFree: false },
+        { id: 47, pcbCode: "U2", name: "STI8036 LNB Power Regulator IC lot2", bomCode: "656110-0008700", category: "IC", qty: 95, price: 122.25, minStock: 25, isFree: false },
+        { id: 48, pcbCode: "D1", name: "BAV99 (A7) Switching Diode SOT-23-lot-2", bomCode: "611106-0000100", category: "Diodes & MOSFETs", qty: 100, price: 0, minStock: 20, isFree: true },
+        { id: 49, pcbCode: "SD2", name: "LL4007 DO-214AC Rectifier Diode Reel (611186-0000500)", bomCode: "611186-0000500", category: "Diodes & MOSFETs", qty: 2000, price: 3.06, minStock: 200, isFree: false },
+        { id: 50, pcbCode: "HS-CPU", name: "Aluminum Heatsink for STB SoC/CPU (181010-0006200)", bomCode: "181010-0006200", category: "Hardware & Mechanical", qty: 500, price: 24.45, minStock: 50, isFree: false }
       ],
       repairs: [
-        { id: "1794895116080", date: "2026-11-03", serialNumber: "011125164578154", warranty: "WITH_WARRANTY", parts: [{ itemId: 4, pcbCode: "U11-A", bomCode: "641110-0055300", itemName: "RDA5815M Satellite Tuner IC (Lot 1)", qty: 1, unitPrice: 100 }], note: "No HDMI / Signal Fault" },
-        { id: "1794889639332", date: "2026-11-03", serialNumber: "011125171248510", warranty: "WITH_WARRANTY", parts: [{ itemId: 10, pcbCode: "U12,U13,U14", bomCode: "641110-0088600", itemName: "GT105-24PFC Crystal Oscillator (24pF)", qty: 1, unitPrice: 25 }, { itemId: 23, pcbCode: "U-JW53", bomCode: "641110-0089300", itemName: "Joulwatt JW5352MSOTB#TR Buck IC", qty: 3, unitPrice: 25 }], note: "Power fault (New STB)" },
-        { id: "1794889334685", date: "2026-11-03", serialNumber: "011125207908428", warranty: "WITH_WARRANTY", parts: [{ itemId: 4, pcbCode: "U11-A", bomCode: "641110-0055300", itemName: "RDA5815M Satellite Tuner IC (Lot 1)", qty: 1, unitPrice: 100 }], note: "Tunner IC Replace" },
-        { id: "1794889252718", date: "2026-11-05", serialNumber: "011125207907226", warranty: "WITH_WARRANTY", parts: [{ itemId: 4, pcbCode: "U11-A", bomCode: "641110-0055300", itemName: "RDA5815M Satellite Tuner IC (Lot 1)", qty: 1, unitPrice: 100 }], note: "Tunner IC Replace" },
-        { id: "101", date: "2026-11-17", serialNumber: "FS-STB-2026-00145", warranty: "WITH_WARRANTY", parts: [{ itemId: 19, pcbCode: "J-HDMI", bomCode: "440270-0002000", itemName: "HDMI Type-A 19P SMT Port", qty: 1, unitPrice: 45 }, { itemId: 26, pcbCode: "DC Power Jack", bomCode: "440550-0000200", itemName: "DC-005 DC Power Jack Socket 2.0mm (440550-0000200)", qty: 1, unitPrice: 10 }], note: "Sample Entry - HDMI & DC Jack replaced under warranty" }
+        { id: "1794895116080", date: "2026-11-03", serialNumber: "011125164578154", warranty: "WITH_WARRANTY", parts: [{ itemId: 4, pcbCode: "U11-A", bomCode: "641110-0055300", itemName: "RDA5815M Satellite Tuner IC (Lot 1)", qty: 1, unitPrice: 203.75 }], note: "No HDMI / Signal Fault" },
+        { id: "1794889639332", date: "2026-11-03", serialNumber: "011125171248510", warranty: "WITH_WARRANTY", parts: [{ itemId: 10, pcbCode: "U12,U13,U14", bomCode: "641110-0088600", itemName: "IC;ESD GTT0524PFC DFN2510-10L GT", qty: 1, unitPrice: 0 }, { itemId: 23, pcbCode: "pu1,pu2,u807", bomCode: "641110-0089300", itemName: "Joulwatt JW5352MSOTB#TR Buck IC", qty: 3, unitPrice: 50.94 }], note: "Power fault (New STB)" },
+        { id: "1794889334685", date: "2026-11-03", serialNumber: "011125207908428", warranty: "WITH_WARRANTY", parts: [{ itemId: 4, pcbCode: "U11-A", bomCode: "641110-0055300", itemName: "RDA5815M Satellite Tuner IC (Lot 1)", qty: 1, unitPrice: 203.75 }], note: "Tunner IC Replace" },
+        { id: "1794889252718", date: "2026-11-05", serialNumber: "011125207907226", warranty: "WITH_WARRANTY", parts: [{ itemId: 4, pcbCode: "U11-A", bomCode: "641110-0055300", itemName: "RDA5815M Satellite Tuner IC (Lot 1)", qty: 1, unitPrice: 203.75 }], note: "Tunner IC Replace" },
+        { id: "101", date: "2026-11-17", serialNumber: "FS-STB-2026-00145", warranty: "WITH_WARRANTY", parts: [{ itemId: 19, pcbCode: "J-HDMI", bomCode: "440270-0002000", itemName: "HDMI Type-A 19P SMT Port", qty: 1, unitPrice: 91.69 }, { itemId: 26, pcbCode: "DC Power Jack", bomCode: "440550-0000200", itemName: "DC-005 DC Power Jack Socket 2.0mm (440550-0000200)", qty: 1, unitPrice: 20.38 }], note: "Sample Entry - HDMI & DC Jack replaced under warranty" }
       ]
     };
 
@@ -691,7 +691,6 @@
       try {
         localStorage.setItem(AUTO_SNAPSHOT_KEY, JSON.stringify(snaps.slice(0, 10)));
       } catch (e) {
-        // If quota exceeded, keep latest 4 snapshots
         try { localStorage.setItem(AUTO_SNAPSHOT_KEY, JSON.stringify(snaps.slice(0, 4))); } catch (_) {}
       }
     }
@@ -1765,14 +1764,14 @@
     window.deleteUserRole = async (email) => { if (currentRole === "admin") await deleteDoc(doc(db, "users", email)); };
     window.toggleSeedLock = () => { document.getElementById("btn-seed").disabled = !document.getElementById("unlock-seed-chk").checked; };
     window.seedInitialData = async () => {
-      if (currentRole !== "admin" || !confirm("Reset all 50 items to initial stock?")) return;
+      if (currentRole !== "admin" || !confirm("Reset all 50 items to initial stock (Paid Stock = Rs. 1,000,000, Free = Rs. 0)?")) return;
       const batch = writeBatch(db);
       INITIAL_DATA.inventory.forEach(item => batch.set(doc(db, "inventory", `item_${item.id}`), item));
       INITIAL_DATA.repairs.forEach(rep => batch.set(doc(db, "repairs", `rep_${rep.id}`), rep));
       await batch.commit();
       document.getElementById("unlock-seed-chk").checked = false;
       toggleSeedLock();
-      alert("✅ Database Reset සාර්ථකයි!");
+      alert("✅ Database Reset සාර්ථකයි! Paid Stock Value = Rs. 1,000,000.");
     };
     window.exportCSV = () => {
       if (currentRole === "technician") return;
