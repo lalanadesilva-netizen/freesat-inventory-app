@@ -497,12 +497,19 @@
             </div>
           </div>
 
-          <!-- Cloud Backup & Restore -->
+          <!-- Cloud Backup & Auto-Snapshot -->
           <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 space-y-4">
-            <div>
-              <h2 class="text-base font-bold text-slate-900">💾 Cloud Backup & Restore</h2>
-              <p class="text-xs text-slate-500 mt-0.5">දත්ත Backup ලබා ගැනීමට හෝ කලින් ගත් JSON Backup ගොනුවක් නැවත Restore කිරීමට පහත බොත්තම් භාවිතා කරන්න.</p>
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <h2 class="text-base font-bold text-slate-900">💾 Cloud Backup, Auto-Snapshot & Restore</h2>
+                <p class="text-xs text-slate-500 mt-0.5">දිනපතා Auto-Snapshot ස්වයංක්‍රීයව සුරැකෙන අතර JSON Backup Download / Restore කළ හැක.</p>
+              </div>
+              <button onclick="saveAutoSnapshot(true)" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-semibold rounded-lg whitespace-nowrap">
+                ⚡ Snapshot Now
+              </button>
             </div>
+
+            <div id="backup-reminder-banner" class="hidden p-2.5 rounded-lg bg-amber-50 border border-amber-300 text-xs text-amber-900 font-medium"></div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <button onclick="exportJSON()" class="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-900 text-white text-sm font-semibold rounded-lg shadow">
@@ -515,7 +522,18 @@
               <input type="file" id="restore-json-input" accept=".json,application/json" class="hidden" onchange="handleRestoreJSON(event)" />
             </div>
 
-            <div class="pt-4 border-t bg-amber-50/70 p-3.5 rounded-lg border border-amber-200 space-y-2">
+            <!-- Daily Auto-Snapshots List -->
+            <div class="pt-3 border-t space-y-2">
+              <div class="flex items-center justify-between">
+                <h3 class="text-xs font-bold uppercase text-slate-700">🕒 Daily Auto-Snapshots (Browser Local)</h3>
+                <span class="text-[11px] text-slate-400">Keeps latest 10</span>
+              </div>
+              <div id="auto-snapshots-list" class="space-y-1.5 max-h-48 overflow-y-auto text-xs">
+                <p class="text-slate-400 italic">Loading snapshots...</p>
+              </div>
+            </div>
+
+            <div class="pt-3 border-t bg-amber-50/70 p-3.5 rounded-lg border border-amber-200 space-y-2">
               <div class="flex items-center justify-between">
                 <span class="text-xs font-bold text-amber-900">⚠️ Factory Reset Protection</span>
                 <label class="inline-flex items-center gap-1.5 text-xs text-amber-800 cursor-pointer">
@@ -644,17 +662,191 @@
         { id: "1794895116080", date: "2026-11-03", serialNumber: "011125164578154", warranty: "WITH_WARRANTY", parts: [{ itemId: 4, pcbCode: "U11-A", bomCode: "641110-0055300", itemName: "RDA5815M Satellite Tuner IC (Lot 1)", qty: 1, unitPrice: 100 }], note: "No HDMI / Signal Fault" },
         { id: "1794889639332", date: "2026-11-03", serialNumber: "011125171248510", warranty: "WITH_WARRANTY", parts: [{ itemId: 10, pcbCode: "U12,U13,U14", bomCode: "641110-0088600", itemName: "GT105-24PFC Crystal Oscillator (24pF)", qty: 1, unitPrice: 25 }, { itemId: 23, pcbCode: "U-JW53", bomCode: "641110-0089300", itemName: "Joulwatt JW5352MSOTB#TR Buck IC", qty: 3, unitPrice: 25 }], note: "Power fault (New STB)" },
         { id: "1794889334685", date: "2026-11-03", serialNumber: "011125207908428", warranty: "WITH_WARRANTY", parts: [{ itemId: 4, pcbCode: "U11-A", bomCode: "641110-0055300", itemName: "RDA5815M Satellite Tuner IC (Lot 1)", qty: 1, unitPrice: 100 }], note: "Tunner IC Replace" },
-        { id: 1794889252718, date: "2026-11-05", serialNumber: "011125207907226", warranty: "WITH_WARRANTY", parts: [{ itemId: 4, pcbCode: "U11-A", bomCode: "641110-0055300", itemName: "RDA5815M Satellite Tuner IC (Lot 1)", qty: 1, unitPrice: 100 }], note: "Tunner IC Replace" },
+        { id: "1794889252718", date: "2026-11-05", serialNumber: "011125207907226", warranty: "WITH_WARRANTY", parts: [{ itemId: 4, pcbCode: "U11-A", bomCode: "641110-0055300", itemName: "RDA5815M Satellite Tuner IC (Lot 1)", qty: 1, unitPrice: 100 }], note: "Tunner IC Replace" },
         { id: "101", date: "2026-11-17", serialNumber: "FS-STB-2026-00145", warranty: "WITH_WARRANTY", parts: [{ itemId: 19, pcbCode: "J-HDMI", bomCode: "440270-0002000", itemName: "HDMI Type-A 19P SMT Port", qty: 1, unitPrice: 45 }, { itemId: 26, pcbCode: "DC Power Jack", bomCode: "440550-0000200", itemName: "DC-005 DC Power Jack Socket 2.0mm (440550-0000200)", qty: 1, unitPrice: 10 }], note: "Sample Entry - HDMI & DC Jack replaced under warranty" }
       ]
     };
 
+    const AUTO_SNAPSHOT_KEY = "freesat_auto_snapshots_v1";
+    const LAST_MANUAL_BACKUP_KEY = "freesat_last_manual_backup_v1";
+
     let currentUser = null, currentRole = "viewer";
     let inventoryList = [], repairsList = [], techStockList = [], issueLogsList = [], usersList = [];
     let currentFilteredRepairs = [], draftParts = [], issueDraftParts = [];
+    let initialSyncDone = { inv: false, rep: false };
 
     document.getElementById("rep-date").valueAsDate = new Date();
     document.getElementById("issue-date").valueAsDate = new Date();
+
+    // --- AUTO SNAPSHOT & BACKUP REMINDER HELPERS ---
+    function loadSnapshots() {
+      try {
+        const raw = localStorage.getItem(AUTO_SNAPSHOT_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (e) { return []; }
+    }
+
+    function persistSnapshots(snaps) {
+      try {
+        localStorage.setItem(AUTO_SNAPSHOT_KEY, JSON.stringify(snaps.slice(0, 10)));
+      } catch (e) {
+        // If quota exceeded, keep latest 4 snapshots
+        try { localStorage.setItem(AUTO_SNAPSHOT_KEY, JSON.stringify(snaps.slice(0, 4))); } catch (_) {}
+      }
+    }
+
+    function buildBackupPayload() {
+      return {
+        exportedAt: new Date().toISOString(),
+        inventory: inventoryList,
+        repairs: repairsList,
+        techStock: techStockList,
+        issueLogs: issueLogsList
+      };
+    }
+
+    window.saveAutoSnapshot = (force = false) => {
+      if (currentRole !== "admin") return;
+      if (!inventoryList.length && !repairsList.length) return;
+
+      const todayStr = new Date().toISOString().slice(0, 10);
+      const snaps = loadSnapshots();
+      const existingToday = snaps.find(s => s.day === todayStr);
+
+      if (existingToday && !force) {
+        renderAutoSnapshotsList();
+        return;
+      }
+
+      const newSnap = {
+        id: `snap_${Date.now()}`,
+        day: todayStr,
+        savedAt: new Date().toISOString(),
+        counts: {
+          inventory: inventoryList.length,
+          repairs: repairsList.length,
+          techStock: techStockList.length
+        },
+        data: buildBackupPayload()
+      };
+
+      const filtered = snaps.filter(s => s.day !== todayStr);
+      const updated = [newSnap, ...filtered].slice(0, 10);
+      persistSnapshots(updated);
+      renderAutoSnapshotsList();
+      if (force) alert(`✅ Auto-Snapshot සුරැකුණි (${todayStr} | Items: ${inventoryList.length}, Repairs: ${repairsList.length})`);
+    };
+
+    function renderAutoSnapshotsList() {
+      const box = document.getElementById("auto-snapshots-list");
+      const banner = document.getElementById("backup-reminder-banner");
+      if (!box) return;
+
+      if (banner) {
+        const lastManual = localStorage.getItem(LAST_MANUAL_BACKUP_KEY);
+        if (!lastManual) {
+          banner.textContent = "💡 ඉඟිය: සතියකට වරක් 'Download JSON Backup' ඔබා Drive/Pen එකක සුරක්ෂිතව තබා ගන්න.";
+          banner.classList.remove("hidden");
+        } else {
+          const daysAgo = Math.floor((Date.now() - new Date(lastManual).getTime()) / (1000 * 60 * 60 * 24));
+          if (daysAgo >= 7) {
+            banner.textContent = `⚠️ මතක් කිරීම: අවසන් Manual JSON Backup එක ලබාගෙන දින ${daysAgo} ක් ගත වී ඇත. කරුණාකර Backup එකක් Download කරන්න.`;
+            banner.classList.remove("hidden");
+          } else {
+            banner.classList.add("hidden");
+          }
+        }
+      }
+
+      const snaps = loadSnapshots();
+      if (!snaps.length) {
+        box.innerHTML = `<p class="text-slate-400 italic">තවම Auto-Snapshots සුරැකී නැත.</p>`;
+        return;
+      }
+
+      box.innerHTML = snaps.map(s => {
+        const timeStr = new Date(s.savedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        return `<div class="flex items-center justify-between gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
+          <div>
+            <span class="font-bold text-slate-800">${s.day}</span>
+            <span class="text-slate-400 text-[11px] ml-1">(${timeStr})</span>
+            <div class="text-[11px] text-slate-500">Items: ${s.counts?.inventory ?? s.data?.inventory?.length ?? 0} • Repairs: ${s.counts?.repairs ?? s.data?.repairs?.length ?? 0}</div>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <button onclick="downloadSnapshot('${s.id}')" class="px-2 py-1 bg-white hover:bg-slate-100 border rounded text-[11px] font-semibold text-slate-700">⬇ JSON</button>
+            <button onclick="restoreSnapshot('${s.id}')" class="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 rounded text-[11px] font-semibold text-white">↩ Restore</button>
+          </div>
+        </div>`;
+      }).join("");
+    }
+
+    window.downloadSnapshot = (snapId) => {
+      const snap = loadSnapshots().find(s => s.id === snapId);
+      if (!snap) return;
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([JSON.stringify(snap.data, null, 2)], { type: "application/json" }));
+      a.download = `Freesat_AutoSnapshot_${snap.day}.json`;
+      a.click();
+    };
+
+    window.restoreSnapshot = async (snapId) => {
+      if (currentRole !== "admin") return;
+      const snap = loadSnapshots().find(s => s.id === snapId);
+      if (!snap || !snap.data) return;
+      const ok = confirm(`${snap.day} දින Auto-Snapshot එක (Items: ${snap.data.inventory?.length || 0}, Repairs: ${snap.data.repairs?.length || 0}) Cloud Database එකට Restore කරන්නද?`);
+      if (!ok) return;
+      await applyBackupDataToFirestore(snap.data);
+    };
+
+    async function applyBackupDataToFirestore(data) {
+      if (!data || !Array.isArray(data.inventory) || !Array.isArray(data.repairs)) {
+        throw new Error("වලංගු Backup දත්ත නොමැත.");
+      }
+
+      const btn = document.getElementById("btn-restore-json");
+      if (btn) { btn.disabled = true; btn.textContent = "⏳ Restoring Data..."; }
+
+      try {
+        const operations = [];
+        data.inventory.forEach((item, idx) => {
+          const { docId, ...cleanItem } = item;
+          const targetId = docId || `item_${cleanItem.id || idx + 1}`;
+          operations.push({ ref: doc(db, "inventory", String(targetId)), payload: cleanItem });
+        });
+
+        data.repairs.forEach((rep, idx) => {
+          const { docId, ...cleanRep } = rep;
+          const targetId = docId || `rep_${cleanRep.id || Date.now() + "_" + idx}`;
+          operations.push({ ref: doc(db, "repairs", String(targetId)), payload: cleanRep });
+        });
+
+        if (Array.isArray(data.techStock)) {
+          data.techStock.forEach((ts, idx) => {
+            const { docId, ...cleanTs } = ts;
+            const targetId = docId || `ts_${Date.now()}_${idx}`;
+            operations.push({ ref: doc(db, "tech_stock", String(targetId)), payload: cleanTs });
+          });
+        }
+
+        const CHUNK_SIZE = 400;
+        for (let i = 0; i < operations.length; i += CHUNK_SIZE) {
+          const batch = writeBatch(db);
+          operations.slice(i, i + CHUNK_SIZE).forEach(op => batch.set(op.ref, op.payload));
+          await batch.commit();
+        }
+
+        alert(`✅ සාර්ථකයි! අයිතම ${data.inventory.length} ක් සහ Repair වාර්තා ${data.repairs.length} ක් Cloud Database එකට Restore විය.`);
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = "📤 Restore JSON Backup"; }
+      }
+    }
+
+    function maybeTriggerDailyAutoSnapshot() {
+      if (currentRole === "admin" && initialSyncDone.inv && initialSyncDone.rep) {
+        saveAutoSnapshot(false);
+      }
+    }
 
     function formatPartForRole(partObj, role = currentRole) {
       const bom = partObj.bomCode || partObj.pcbCode || "BOM-N/A";
@@ -709,6 +901,7 @@
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
         currentUser = null;
+        initialSyncDone = { inv: false, rep: false };
         document.getElementById("login-screen").classList.remove("hidden");
         document.getElementById("app-screen").classList.add("hidden");
         return;
@@ -722,6 +915,10 @@
       document.querySelectorAll(".admin-only").forEach(el => el.classList.toggle("hidden", currentRole !== "admin"));
       document.querySelectorAll(".tech-or-admin").forEach(el => el.classList.toggle("hidden", currentRole !== "admin" && !isTech));
       document.querySelectorAll(".non-tech-only").forEach(el => el.classList.toggle("hidden", isTech));
+
+      if (currentRole === "admin") {
+        renderAutoSnapshotsList();
+      }
 
       const sourceBadge = document.getElementById("repair-stock-source-badge");
       const selectorLabel = document.getElementById("parts-selector-label");
@@ -764,6 +961,8 @@
         inventoryList = snap.docs.map(d => ({ docId: d.id, ...d.data() })).sort((a, b) => Number(a.id) - Number(b.id));
         document.getElementById("count-items").textContent = inventoryList.length;
         updateStats(); renderInventory(); populatePartDropdown(); populateIssueDropdown();
+        initialSyncDone.inv = true;
+        maybeTriggerDailyAutoSnapshot();
       }, handleSnapshotError);
 
       onSnapshot(collection(db, "tech_stock"), (snap) => {
@@ -785,6 +984,8 @@
         repairsList = snap.docs.map(d => ({ docId: d.id, ...d.data() })).sort((a, b) => String(b.date).localeCompare(String(a.date)));
         document.getElementById("count-repairs").textContent = repairsList.length;
         updateStats(); populateTechFilterDropdown(); renderRepairs();
+        initialSyncDone.rep = true;
+        maybeTriggerDailyAutoSnapshot();
       }, handleSnapshotError);
 
       onSnapshot(collection(db, "users"), (snap) => {
@@ -1523,6 +1724,9 @@
         const mBtn = document.getElementById(`mob-tab-${t}`);
         if (mBtn) { mBtn.classList.toggle("text-blue-400", t === tab); mBtn.classList.toggle("font-bold", t === tab); mBtn.classList.toggle("text-slate-400", t !== tab); }
       });
+      if (tab === "admin" && currentRole === "admin") {
+        renderAutoSnapshotsList();
+      }
     };
 
     window.openItemModal = () => { document.getElementById("edit-item-id").value = ""; document.getElementById("inp-id").value = inventoryList.length + 1; document.getElementById("item-modal").classList.remove("hidden"); };
@@ -1586,7 +1790,14 @@
       a.download = `Freesat_Repairs_${selectedLogin === "ALL" ? "All" : selectedLogin}.csv`; a.click();
     };
     window.exportJSON = () => {
-      const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify({ inventory: inventoryList, repairs: repairsList, techStock: techStockList, issueLogs: issueLogsList }, null, 2)], { type: "application/json" })); a.download = `Freesat_Backup_${new Date().toISOString().slice(0,10)}.json`; a.click();
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([JSON.stringify(buildBackupPayload(), null, 2)], { type: "application/json" }));
+      a.download = `Freesat_Backup_${new Date().toISOString().slice(0,10)}.json`;
+      a.click();
+      try {
+        localStorage.setItem(LAST_MANUAL_BACKUP_KEY, new Date().toISOString());
+        renderAutoSnapshotsList();
+      } catch (e) {}
     };
 
     window.handleRestoreJSON = async (event) => {
@@ -1615,47 +1826,10 @@
           return;
         }
 
-        const btn = document.getElementById("btn-restore-json");
-        btn.disabled = true;
-        btn.textContent = "⏳ Restoring Data...";
-
-        const operations = [];
-        data.inventory.forEach((item, idx) => {
-          const { docId, ...cleanItem } = item;
-          const targetId = docId || `item_${cleanItem.id || idx + 1}`;
-          operations.push({ ref: doc(db, "inventory", String(targetId)), payload: cleanItem });
-        });
-
-        data.repairs.forEach((rep, idx) => {
-          const { docId, ...cleanRep } = rep;
-          const targetId = docId || `rep_${cleanRep.id || Date.now() + "_" + idx}`;
-          operations.push({ ref: doc(db, "repairs", String(targetId)), payload: cleanRep });
-        });
-
-        if (Array.isArray(data.techStock)) {
-          data.techStock.forEach((ts, idx) => {
-            const { docId, ...cleanTs } = ts;
-            const targetId = docId || `ts_${Date.now()}_${idx}`;
-            operations.push({ ref: doc(db, "tech_stock", String(targetId)), payload: cleanTs });
-          });
-        }
-
-        const CHUNK_SIZE = 400;
-        for (let i = 0; i < operations.length; i += CHUNK_SIZE) {
-          const batch = writeBatch(db);
-          operations.slice(i, i + CHUNK_SIZE).forEach(op => batch.set(op.ref, op.payload));
-          await batch.commit();
-        }
-
-        alert(`✅ සාර්ථකයි! අයිතම ${data.inventory.length} ක් සහ Repair වාර්තා ${data.repairs.length} ක් Cloud Database එකට Restore විය.`);
+        await applyBackupDataToFirestore(data);
       } catch (err) {
         alert("❌ Restore කිරීමේදී දෝෂයක් ඇති විය: " + err.message);
       } finally {
-        const btn = document.getElementById("btn-restore-json");
-        if (btn) {
-          btn.disabled = false;
-          btn.textContent = "📤 Restore JSON Backup";
-        }
         event.target.value = "";
       }
     };
