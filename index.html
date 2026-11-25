@@ -522,6 +522,19 @@
               <input type="file" id="restore-json-input" accept=".json,application/json" class="hidden" onchange="handleRestoreJSON(event)" />
             </div>
 
+            <!-- Live Paid Stock Target Adjuster (Rs. 1,000,000) -->
+            <div class="pt-3 border-t bg-blue-50/70 p-3.5 rounded-lg border border-blue-200 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-blue-950">🎯 Live Paid Stock Value Target</span>
+                <span class="text-[11px] font-semibold text-blue-700">Keeps Free = Rs. 0 & Parts</span>
+              </div>
+              <p class="text-[11px] text-blue-900">දැනට Live Database එකේ ඇති සියලුම Paid Items (Free නොවන) වල එකතුව හරියටම <b>Rs. 1,000,000.00</b> වන ලෙස unit prices සකසයි.</p>
+              <button onclick="recalculatePaidStockToTarget(1000000)" id="btn-recalc-1m"
+                class="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow">
+                💰 Set Paid Stock = Rs. 1,000,000 (Live DB)
+              </button>
+            </div>
+
             <!-- Daily Auto-Snapshots List -->
             <div class="pt-3 border-t space-y-2">
               <div class="flex items-center justify-between">
@@ -677,6 +690,72 @@
 
     document.getElementById("rep-date").valueAsDate = new Date();
     document.getElementById("issue-date").valueAsDate = new Date();
+
+    // --- RECALCULATE LIVE PAID STOCK TO EXACT TARGET (e.g., Rs. 1,000,000) ---
+    window.recalculatePaidStockToTarget = async (targetTotal = 1000000) => {
+      if (currentRole !== "admin") return;
+      if (!inventoryList.length) {
+        alert("Inventory දත්ත තවම Load වී නැත.");
+        return;
+      }
+
+      const paidItems = inventoryList.filter(i => !i.isFree && Number(i.qty) > 0);
+      if (!paidItems.length) {
+        alert("Paid Items (qty > 0) හමු නොවීය.");
+        return;
+      }
+
+      const currentPaidTotal = paidItems.reduce((sum, i) => sum + (Number(i.qty) || 0) * (Number(i.price) || 0), 0);
+      if (currentPaidTotal <= 0) {
+        alert("දැනට Paid Stock එකේ මුළු වටිනාකම 0 බැවින් සමානුපාතිකව ගණනය කළ නොහැක.");
+        return;
+      }
+
+      const ok = confirm(
+        `දැනට Live Paid Stock වටිනාකම: Rs. ${currentPaidTotal.toLocaleString("en-US", { maximumFractionDigits: 2 })}\n` +
+        `නව ඉලක්ක වටිනාකම: Rs. ${targetTotal.toLocaleString("en-US", { maximumFractionDigits: 2 })}\n\n` +
+        `Paid Items ${paidItems.length} ක unit prices යාවත්කාලීන කර මුළු Paid Stock අගය හරියටම Rs. 1,000,000.00 කරන්නද?`
+      );
+      if (!ok) return;
+
+      const btn = document.getElementById("btn-recalc-1m");
+      if (btn) { btn.disabled = true; btn.textContent = "⏳ Updating Paid Stock..."; }
+
+      try {
+        const factor = targetTotal / currentPaidTotal;
+        const updates = [];
+        let runningTotal = 0;
+
+        paidItems.forEach((item, idx) => {
+          const qty = Number(item.qty) || 0;
+          let newPrice;
+          if (idx < paidItems.length - 1) {
+            const rawUnit = (Number(item.price) || 0) * factor;
+            newPrice = Math.round(rawUnit * 100) / 100;
+            runningTotal += Math.round(qty * newPrice * 100) / 100;
+          } else {
+            const remainingTotal = Math.round((targetTotal - runningTotal) * 100) / 100;
+            newPrice = Math.round((remainingTotal / qty) * 10000) / 10000;
+          }
+          updates.push({ docId: item.docId, price: newPrice });
+        });
+
+        const CHUNK_SIZE = 400;
+        for (let i = 0; i < updates.length; i += CHUNK_SIZE) {
+          const batch = writeBatch(db);
+          updates.slice(i, i + CHUNK_SIZE).forEach(u => {
+            batch.update(doc(db, "inventory", u.docId), { price: u.price });
+          });
+          await batch.commit();
+        }
+
+        alert(`✅ සාර්ථකයි! Paid Items ${updates.length} ක් යාවත්කාලීන කර Paid Stock වටිනාකම Rs. ${targetTotal.toLocaleString("en-US", { minimumFractionDigits: 2 })} ලෙස සකසන ලදී.`);
+      } catch (err) {
+        alert("දෝෂයක් ඇති විය: " + err.message);
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = "💰 Set Paid Stock = Rs. 1,000,000 (Live DB)"; }
+      }
+    };
 
     // --- AUTO SNAPSHOT & BACKUP REMINDER HELPERS ---
     function loadSnapshots() {
@@ -1764,14 +1843,14 @@
     window.deleteUserRole = async (email) => { if (currentRole === "admin") await deleteDoc(doc(db, "users", email)); };
     window.toggleSeedLock = () => { document.getElementById("btn-seed").disabled = !document.getElementById("unlock-seed-chk").checked; };
     window.seedInitialData = async () => {
-      if (currentRole !== "admin" || !confirm("Reset all 50 items to initial stock (Paid Stock = Rs. 1,000,000, Free = Rs. 0)?")) return;
+      if (currentRole !== "admin" || !confirm("Reset all 50 items to initial stock?")) return;
       const batch = writeBatch(db);
       INITIAL_DATA.inventory.forEach(item => batch.set(doc(db, "inventory", `item_${item.id}`), item));
       INITIAL_DATA.repairs.forEach(rep => batch.set(doc(db, "repairs", `rep_${rep.id}`), rep));
       await batch.commit();
       document.getElementById("unlock-seed-chk").checked = false;
       toggleSeedLock();
-      alert("✅ Database Reset සාර්ථකයි! Paid Stock Value = Rs. 1,000,000.");
+      alert("✅ Database Reset සාර්ථකයි!");
     };
     window.exportCSV = () => {
       if (currentRole === "technician") return;
